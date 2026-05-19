@@ -404,7 +404,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
               onClick={() => handleClick(r)}
             >
               <div
-                className="w-full h-full relative overflow-hidden rounded-sm"
+                className="w-full h-full relative overflow-hidden"
                 style={{
                   transform: `scale(${scale})`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s',
@@ -424,7 +424,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                   <img
                     src={r.imageUrl!}
                     alt={r.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     loading="lazy"
                     draggable={false}
                   />

@@ -305,7 +305,7 @@ export default function KaleidoView({ resources, connections, onSelectResource }
 
   /* ─── Render ─── */
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden" style={{ background: '#0a0a0a' }}>
+    <div ref={containerRef} className="absolute inset-0 overflow-hidden" style={{ background: '#ffffff' }}>
       {/* ─── Background: Rainbow Grid ─── */}
       <div className="absolute inset-0" style={{ opacity: revealed ? 1 : 0, transition: 'opacity 1.5s ease-out' }}>
         {gridCells.map((cell) => {
@@ -417,7 +417,7 @@ export default function KaleidoView({ resources, connections, onSelectResource }
               onClick={() => handleClick(r)}
             >
               <div
-                className="w-full h-full relative overflow-hidden rounded-sm"
+                className="w-full h-full relative overflow-hidden"
                 style={{
                   transform: `scale(${scale})`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s',
@@ -429,22 +429,22 @@ export default function KaleidoView({ resources, connections, onSelectResource }
                   border: isSelected
                     ? `2px solid ${TYPE_COLORS[r.type] || 'rgba(255,255,255,0.4)'}`
                     : isConnected
-                    ? '1px solid rgba(255,255,255,0.2)'
-                    : '1px solid rgba(255,255,255,0.04)',
+                    ? '1px solid rgba(0,0,0,0.2)'
+                    : '1px solid rgba(0,0,0,0.06)',
                 }}
               >
                 {hasImage ? (
                   <img
                     src={r.imageUrl!}
                     alt={r.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     loading="lazy"
                     draggable={false}
                   />
                 ) : (
                   <div
                     className="w-full h-full flex items-center justify-center p-2"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+                    style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}
                   >
                     {r.quoteText ? (
                       <p
@@ -452,7 +452,7 @@ export default function KaleidoView({ resources, connections, onSelectResource }
                         style={{
                           fontFamily: "'EB Garamond', serif",
                           fontSize: 10,
-                          color: 'rgba(255,255,255,0.5)',
+                          color: 'rgba(0,0,0,0.6)',
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitLineClamp: 3,
@@ -466,7 +466,7 @@ export default function KaleidoView({ resources, connections, onSelectResource }
                         style={{
                           fontFamily: "'EB Garamond', serif",
                           fontSize: 9,
-                          color: 'rgba(255,255,255,0.3)',
+                          color: 'rgba(0,0,0,0.5)',
                           textAlign: 'center',
                         }}
                       >
@@ -496,16 +496,16 @@ export default function KaleidoView({ resources, connections, onSelectResource }
                   <div
                     className="px-2 py-1 rounded"
                     style={{
-                      background: 'rgba(10,10,12,0.9)',
+                      background: 'rgba(255,255,255,0.92)',
                       backdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(0,0,0,0.1)',
                     }}
                   >
-                    <div className="text-[10px] text-white/80 max-w-[180px] truncate" style={{ fontFamily: "'EB Garamond', serif" }}>
+                    <div className="text-[10px] text-black/80 max-w-[180px] truncate" style={{ fontFamily: "'EB Garamond', serif" }}>
                       {r.title}
                     </div>
                     {r.creator && (
-                      <div className="text-[8px] text-white/35">{r.creator}</div>
+                      <div className="text-[8px] text-black/45">{r.creator}</div>
                     )}
                   </div>
                 </div>
@@ -522,18 +522,18 @@ export default function KaleidoView({ resources, connections, onSelectResource }
           <div
             className="px-3 py-2 rounded-lg"
             style={{
-              background: 'rgba(20,20,25,0.7)',
+              background: 'rgba(255,255,255,0.85)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid rgba(0,0,0,0.08)',
             }}
           >
             <div
-              className="text-[9px] uppercase tracking-[0.12em] text-white/40"
+              className="text-[9px] uppercase tracking-[0.12em] text-black/50"
               style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}
             >
               {mode === 'scatter' ? 'Kaleido' : 'Orbit'}
             </div>
-            <div className="text-[8px] mt-1 text-white/20" style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}>
+            <div className="text-[8px] mt-1 text-black/30" style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}>
               {mode === 'scatter'
                 ? 'Click any image to orbit'
                 : 'Click center to return'
@@ -546,7 +546,7 @@ export default function KaleidoView({ resources, connections, onSelectResource }
       {/* ─── Stats ─── */}
       <div
         className={`absolute z-30 select-none ${isMobile ? 'bottom-16 right-3' : 'bottom-20 right-6'}`}
-        style={{ color: 'rgba(255,255,255,0.12)', fontSize: 10 }}
+        style={{ color: 'rgba(0,0,0,0.25)', fontSize: 10 }}
       >
         {resources.length} entries
       </div>
