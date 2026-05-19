@@ -1,0 +1,35 @@
+{
+  "build_command": "pnpm run build",
+  "capabilities": [],
+  "dev_command": "pnpm run dev",
+  "env_vars": {},
+  "experiments": null,
+  "git_remote": {
+    "repo_url": "s3://vida-prod-gitrepo/webdev-git/84617060/DFzAsUepBcZqtiSTvSnJTU",
+    "access_key_id": "ASIAZV3A2ECZI5ZJXVX6",
+    "secret_access_key": "6/liEm8hXHqdE8YmUrGv++eKMDFVh3uqkgeTj2yv",
+    "session_token": "IQoJb3JpZ2luX2VjEBMaCXVzLWVhc3QtMSJGMEQCIAfWSrTYt9+X1hNqEVTrW4cvd2XlizUZgK3m6V1VlKAfAiApkjK8/+4z0MkHmlP4cche5sFcenVC4DlOTi0V5np8LCrrAwjc//////////8BEAQaDDY2NTM4NjA5ODg2NiIM0AxmZeZriHQdZHNLKr8DVCyHqGnkU4cnn6VWYr5LgBCGcqHdrup6V4bUXrXJa8k/+4YYTrJgnl4EGdTak3ZsxcFgxUfdW7XH5Zsn0T/JLsD9e22WvMG7CrqUcEO+yozVSpFYR3P4D+NJ6wiQCdECae20Ct7d4mGxLVv7to5wVAdemhxq5nIpkPiuWWk51P57I5kaDwy87DnNv+sD3twUXbfpUDVSD6Nz6xSwj0gsHUcP/BFaTn1dQzeNb5ajqfFct1Jzo4znvcrCeWL9m/zHbz1aSWj/H1YFhd29USP/h9dQSenMjwcnQz8Vop5TJWlf8oKIc+1lHpYYOIlYV/o5ZA9djiqRYvcfmHXaUeZYQYTWLnuoIhrvEZyjiSpMm48o5fePmdSX+358W0LeTS2mzRrcySD8CZNkQyh4Hu80dPQdgfV5JrrUaRyPtJWuMvyXgT8nBQwFXCDASDvvOqH2GKuKoucgwsWbxM2O54dkKPbT99fUatm4+VTe8CHqa7qb7bMmyPWfaWiMVlR1QCwL3u9F+yCNG7iNlvm1ukVi/TgFNw7dvxG2+kOElUDZsemBwfEif5ZfXTtqp8B+Dw1zB9hOCFEP8Dlfee/YLUpZMIrYstAGOp4Bh9KGrHdkv+N5jZVZolIehwcB+z74egfMYP24+TaG7GZav1MOy4DacEwhMNGy6q86PbijZ7BP5yjzVByHHR5sttoA+UKaEJUOL9rfDwLEP+D58iDAuz38X61dU8lGiTvOaZwqf1O1A7J0wLMqp4R1A5YBw7flHY9lHT9oXjA/E7sxhKISFK0EX9kvPNIO74JQE92NVYKg+6vwTj1u8AQ=",
+    "expiration": "2026-05-20T06:29:30.000Z"
+  },
+  "name": "atlas-views-studio",
+  "path": "/home/ubuntu/atlas-views-studio",
+  "port": 3000,
+  "secrets": {
+    "BUILT_IN_FORGE_API_KEY": "fqPJWucaSM5gCXmeNLY5TQ",
+    "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
+    "JWT_SECRET": "bwnb28RVUTRzYn93vqAY7r",
+    "OAUTH_SERVER_URL": "https://api.manus.im",
+    "OWNER_NAME": "Pinyan Zeng (Yesly)",
+    "OWNER_OPEN_ID": "D98TBTfNkaej896AC7NGTC",
+    "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
+    "VITE_ANALYTICS_WEBSITE_ID": "7240c6c3-eab6-476b-a7e7-65b2463fcf2e",
+    "VITE_APP_ID": "DFzAsUepBcZqtiSTvSnJTU",
+    "VITE_APP_LOGO": "",
+    "VITE_APP_TITLE": "Atlas Views Studio",
+    "VITE_FRONTEND_FORGE_API_KEY": "R3X5nMKETxuEDHY2rEToLs",
+    "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+  },
+  "template_id": "web-static",
+  "test_command": "pnpm test"
+}
