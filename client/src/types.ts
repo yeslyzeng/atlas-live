@@ -31,7 +31,7 @@ export interface Connection {
   label?: string;
 }
 
-export type ViewMode = 'orbit' | 'kaleido' | 'index';
+export type ViewMode = 'orbit' | 'index';
 
 export const TYPE_COLORS: Record<string, string> = {
   film: 'hsl(230, 60%, 62%)',

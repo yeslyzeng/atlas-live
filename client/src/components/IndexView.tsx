@@ -85,11 +85,12 @@ export default function IndexView({ resources, connections, onSelectResource }: 
   }, [connections, filters]);
 
   // Column layout: fill columns vertically, then scroll horizontally
-  const CARD_HEIGHT = 120;
-  const COLUMN_GAP = 40;
-  const CARD_GAP = 20;
-  const TOP_PADDING = 85;
-  const BOTTOM_PADDING = 20;
+  const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768;
+  const CARD_HEIGHT = isMobileDevice ? 80 : 120;
+  const COLUMN_GAP = isMobileDevice ? 16 : 40;
+  const CARD_GAP = isMobileDevice ? 12 : 20;
+  const TOP_PADDING = isMobileDevice ? 56 : 85;
+  const BOTTOM_PADDING = isMobileDevice ? 80 : 20;
 
   const cardsPerColumn = useMemo(() => {
     const availableHeight = (typeof window !== 'undefined' ? window.innerHeight : 800) - TOP_PADDING - BOTTOM_PADDING;
@@ -306,8 +307,8 @@ export default function IndexView({ resources, connections, onSelectResource }: 
         style={{
           paddingTop: TOP_PADDING,
           paddingBottom: BOTTOM_PADDING,
-          paddingLeft: 40,
-          paddingRight: 40,
+          paddingLeft: isMobileDevice ? 12 : 40,
+          paddingRight: isMobileDevice ? 12 : 40,
         }}
         onMouseDown={handleMouseDown}
       >
@@ -340,7 +341,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                   >
                     {/* Image */}
                     {showImages && resource.imageUrl && (
-                      <div className="shrink-0" style={{ width: isExpanded ? 'auto' : 120, marginRight: 16 }}>
+                      <div className="shrink-0" style={{ width: isExpanded ? 'auto' : (isMobileDevice ? 70 : 120), marginRight: isMobileDevice ? 8 : 16 }}>
                         <img
                           src={resource.imageUrl}
                           alt={resource.title}
@@ -348,8 +349,8 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                           style={{
                             height: isExpanded ? expandedHeight : CARD_HEIGHT,
                             maxHeight: isExpanded ? 'none' : CARD_HEIGHT,
-                            maxWidth: isExpanded ? 400 : 120,
-                            width: isExpanded ? 'auto' : 120,
+                            maxWidth: isExpanded ? (isMobileDevice ? 200 : 400) : (isMobileDevice ? 70 : 120),
+                            width: isExpanded ? 'auto' : (isMobileDevice ? 70 : 120),
                             transitionDuration: '350ms',
                             transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
                             alignSelf: 'flex-start',

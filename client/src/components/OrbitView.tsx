@@ -7,6 +7,7 @@ interface OrbitViewProps {
   resources: Resource[];
   connections: Connection[];
   onSelectResource: (r: Resource) => void;
+  isDarkMode?: boolean;
 }
 
 /* ─── Helpers ─── */
@@ -78,7 +79,7 @@ interface NodePos {
   relation: 'self' | 'connected' | 'same-category' | 'none';
 }
 
-export default function OrbitView({ resources, connections, onSelectResource }: OrbitViewProps) {
+export default function OrbitView({ resources, connections, onSelectResource, isDarkMode = true }: OrbitViewProps) {
   const isMobile = useIsMobile();
   const isNarrow = useIsNarrow();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,7 +129,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
 
     // Golden angle spiral for organic distribution
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-    const maxR = Math.min(vw, vh) * 0.42;
+    const maxR = Math.min(vw, vh) * 0.32;
 
     return resources.map((r, i) => {
       const rng = seededRandom(r.id * 7 + 3);
@@ -309,7 +310,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
     <div
       ref={containerRef}
       className="absolute inset-0 overflow-hidden"
-      style={{ backgroundColor: '#0A0A0C' }}
+      style={{ backgroundColor: isDarkMode ? '#0A0A0C' : '#ffffff' }}
     >
       {/* SVG connection lines (only in orbit mode) */}
       {mode === 'orbit' && selectedId !== null && (
@@ -340,7 +341,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                 cy={containerSize.height / 2}
                 r={Math.min(containerSize.width, containerSize.height) * 0.18}
                 fill="none"
-                stroke="rgba(255,255,255,0.04)"
+                stroke={isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}
                 strokeWidth="0.5"
               />
               <circle
@@ -348,7 +349,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                 cy={containerSize.height / 2}
                 r={Math.min(containerSize.width, containerSize.height) * 0.32}
                 fill="none"
-                stroke="rgba(255,255,255,0.03)"
+                stroke={isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'}
                 strokeWidth="0.5"
               />
               <circle
@@ -356,7 +357,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                 cy={containerSize.height / 2}
                 r={Math.min(containerSize.width, containerSize.height) * 0.44}
                 fill="none"
-                stroke="rgba(255,255,255,0.02)"
+                stroke={isDarkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'}
                 strokeWidth="0.5"
               />
             </>
@@ -416,8 +417,8 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                   border: isSelected
                     ? `2px solid ${TYPE_COLORS[r.type] || 'rgba(255,255,255,0.4)'}`
                     : isConnected
-                    ? '1px solid rgba(255,255,255,0.2)'
-                    : '1px solid rgba(255,255,255,0.04)',
+                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'}`
+                    : `1px solid ${isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'}`,
                 }}
               >
                 {hasImage ? (
@@ -432,7 +433,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                   <div
                     className="w-full h-full flex items-center justify-center p-2"
                     style={{
-                      backgroundColor: 'rgba(255,255,255,0.03)',
+                      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
                     }}
                   >
                     {r.quoteText ? (
@@ -441,7 +442,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                         style={{
                           fontFamily: "'EB Garamond', serif",
                           fontSize: 10,
-                          color: 'rgba(255,255,255,0.5)',
+                          color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.6)',
                           overflow: 'hidden',
                           display: '-webkit-box',
                           WebkitLineClamp: 3,
@@ -455,7 +456,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                         style={{
                           fontFamily: "'EB Garamond', serif",
                           fontSize: 9,
-                          color: 'rgba(255,255,255,0.3)',
+                          color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.5)',
                           textAlign: 'center',
                         }}
                       >
@@ -489,16 +490,16 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
                   <div
                     className="px-2 py-1 rounded"
                     style={{
-                      background: 'rgba(10,10,12,0.9)',
+                      background: isDarkMode ? 'rgba(10,10,12,0.9)' : 'rgba(255,255,255,0.92)',
                       backdropFilter: 'blur(8px)',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.1)',
                     }}
                   >
-                    <div className="text-[10px] text-white/80 max-w-[180px] truncate" style={{ fontFamily: "'EB Garamond', serif" }}>
+                    <div className={`text-[10px] max-w-[180px] truncate ${isDarkMode ? 'text-white/80' : 'text-black/80'}`} style={{ fontFamily: "'EB Garamond', serif" }}>
                       {r.title}
                     </div>
                     {r.creator && (
-                      <div className="text-[8px] text-white/35">{r.creator}</div>
+                      <div className={`text-[8px] ${isDarkMode ? 'text-white/35' : 'text-black/45'}`}>{r.creator}</div>
                     )}
                   </div>
                 </div>
@@ -518,7 +519,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
               left: containerSize.width / 2 + Math.min(containerSize.width, containerSize.height) * 0.18 + 8,
               top: containerSize.height / 2 - 6,
               fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
-              color: 'rgba(255,255,255,0.25)',
+              color: isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)',
             }}
           >
             Connected
@@ -530,7 +531,7 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
               left: containerSize.width / 2 + Math.min(containerSize.width, containerSize.height) * 0.32 + 8,
               top: containerSize.height / 2 - 6,
               fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
-              color: 'rgba(255,255,255,0.15)',
+              color: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.2)',
             }}
           >
             Same {GROUPINGS[activeGrouping].label.toLowerCase()}
@@ -542,9 +543,9 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
       <div
         className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 z-30 px-3 py-2 rounded-full"
         style={{
-          background: 'rgba(20,20,25,0.6)',
+          background: isDarkMode ? 'rgba(20,20,25,0.6)' : 'rgba(240,240,240,0.8)',
           backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
         }}
       >
         {GROUPINGS.slice(0, 3).map((g, gi) => (
@@ -553,21 +554,21 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
             onClick={() => setActiveGrouping(gi)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer"
             style={{
-              background: activeGrouping === gi ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeGrouping === gi ? (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)') : 'transparent',
             }}
           >
             <span
               className="w-2 h-2 rounded-full transition-all"
               style={{
-                backgroundColor: activeGrouping === gi ? 'rgba(255,255,255,0.8)' : 'transparent',
-                border: `1.5px solid rgba(255,255,255,${activeGrouping === gi ? 0.8 : 0.25})`,
+                backgroundColor: activeGrouping === gi ? (isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)') : 'transparent',
+                border: `1.5px solid ${isDarkMode ? `rgba(255,255,255,${activeGrouping === gi ? 0.8 : 0.25})` : `rgba(0,0,0,${activeGrouping === gi ? 0.7 : 0.25})`}`,
               }}
             />
             <span
               className="text-[10px] uppercase tracking-[0.1em]"
               style={{
                 fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
-                color: activeGrouping === gi ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.3)',
+                color: activeGrouping === gi ? (isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)') : (isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)'),
                 fontWeight: activeGrouping === gi ? 500 : 400,
               }}
             >
@@ -583,18 +584,18 @@ export default function OrbitView({ resources, connections, onSelectResource }: 
           <div
             className="px-3 py-2 rounded-lg"
             style={{
-              background: 'rgba(20,20,25,0.7)',
+              background: isDarkMode ? 'rgba(20,20,25,0.7)' : 'rgba(255,255,255,0.85)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)',
             }}
           >
             <div
-              className="text-[9px] uppercase tracking-[0.12em] text-white/40"
+              className={`text-[9px] uppercase tracking-[0.12em] ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}
               style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}
             >
               {mode === 'scatter' ? 'Constellation' : 'Orbit'}
             </div>
-            <div className="text-[8px] mt-1 text-white/20" style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}>
+            <div className={`text-[8px] mt-1 ${isDarkMode ? 'text-white/20' : 'text-black/30'}`} style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}>
               {mode === 'scatter'
                 ? 'Click any image to orbit around it'
                 : 'Click center to return · Click another to re-orbit'
