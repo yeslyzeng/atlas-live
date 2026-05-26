@@ -142,7 +142,9 @@ export default function OrbitView({ resources, connections, onSelectResource, is
       const baseSize = isMobile ? 40 : isNarrow ? 55 : 70;
       const sizeVar = 0.7 + rng() * 0.6;
       const w = r.imageUrl ? baseSize * sizeVar : baseSize * 0.6 * sizeVar;
-      const h = r.imageUrl ? w * (r.aspectRatio ? parseFloat(r.aspectRatio) : 1.2) : w;
+      // For images: use actual aspect ratio so frame matches image exactly
+      // aspectRatio field stores height/width ratio
+      const h = r.imageUrl ? w * (r.aspectRatio ? parseFloat(r.aspectRatio) : 1.0) : w;
 
       return { resource: r, x, y, baseX: x, baseY: y, w, h };
     });
@@ -410,22 +412,22 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                   transform: `scale(${scale})`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s',
                   boxShadow: isSelected
-                    ? `0 0 40px 8px ${TYPE_COLORS[r.type] || 'rgba(255,255,255,0.2)'}40`
+                    ? `0 0 30px 4px ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)'}`
                     : isHovered
-                    ? '0 4px 20px rgba(0,0,0,0.5)'
+                    ? `0 4px 16px ${isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)'}`
                     : 'none',
                   border: isSelected
-                    ? `2px solid ${TYPE_COLORS[r.type] || 'rgba(255,255,255,0.4)'}`
+                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)'}`
                     : isConnected
-                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'}`
-                    : `1px solid ${isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'}`,
+                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`
+                    : 'none',
                 }}
               >
                 {hasImage ? (
                   <img
                     src={r.imageUrl!}
                     alt={r.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     loading="lazy"
                     draggable={false}
                   />
@@ -466,15 +468,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                   </div>
                 )}
 
-                {/* Category color indicator */}
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-[2px]"
-                  style={{
-                    backgroundColor: TYPE_COLORS[r.type] || 'rgba(255,255,255,0.2)',
-                    opacity: isSelected || isHovered || isConnected ? 0.8 : 0.2,
-                    transition: 'opacity 0.3s',
-                  }}
-                />
+
               </div>
 
               {/* Title on hover */}
@@ -495,11 +489,17 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                       border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.1)',
                     }}
                   >
-                    <div className={`text-[10px] max-w-[180px] truncate ${isDarkMode ? 'text-white/80' : 'text-black/80'}`} style={{ fontFamily: "'EB Garamond', serif" }}>
-                      {r.title}
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="inline-block w-[5px] h-[5px] rounded-full shrink-0"
+                        style={{ backgroundColor: TYPE_COLORS[r.type] || 'rgba(128,128,128,0.5)' }}
+                      />
+                      <span className={`text-[10px] max-w-[180px] truncate ${isDarkMode ? 'text-white/80' : 'text-black/80'}`} style={{ fontFamily: "'EB Garamond', serif" }}>
+                        {r.title}
+                      </span>
                     </div>
                     {r.creator && (
-                      <div className={`text-[8px] ${isDarkMode ? 'text-white/35' : 'text-black/45'}`}>{r.creator}</div>
+                      <div className={`text-[8px] pl-[11px] ${isDarkMode ? 'text-white/35' : 'text-black/45'}`}>{r.creator}</div>
                     )}
                   </div>
                 </div>
