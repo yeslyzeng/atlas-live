@@ -416,11 +416,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                     : isHovered
                     ? `0 4px 16px ${isDarkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)'}`
                     : 'none',
-                  border: isSelected
-                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)'}`
-                    : isConnected
-                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`
-                    : 'none',
+                  border: 'none',
                 }}
               >
                 {hasImage ? (
