@@ -1,15 +1,22 @@
 {
   "build_command": "pnpm run build",
-  "capabilities": [],
+  "capabilities": [
+    "db",
+    "server",
+    "user"
+  ],
   "dev_command": "pnpm run dev",
-  "env_vars": {},
+  "env_vars": {
+    "DATABASE_URL": "mysql://oPqcS25W1i52ny6.394cafcd5517:uOtrG9j86NG25vq0kjgr@gateway02.us-east-1.prod.aws.tidbcloud.com:4000/DFzAsUepBcZqtiSTvSnJTU?ssl={\"rejectUnauthorized\":true}",
+    "DRIZZLE_DATABASE_URL": "mysql://oPqcS25W1i52ny6.394cafcd5517:uOtrG9j86NG25vq0kjgr@gateway02.us-east-1.prod.aws.tidbcloud.com:4000/DFzAsUepBcZqtiSTvSnJTU?ssl={\"rejectUnauthorized\":true}"
+  },
   "experiments": null,
   "git_remote": {
     "repo_url": "s3://vida-prod-gitrepo/webdev-git/84617060/DFzAsUepBcZqtiSTvSnJTU",
-    "access_key_id": "ASIAZV3A2ECZI5ZJXVX6",
-    "secret_access_key": "6/liEm8hXHqdE8YmUrGv++eKMDFVh3uqkgeTj2yv",
-    "session_token": "IQoJb3JpZ2luX2VjEBMaCXVzLWVhc3QtMSJGMEQCIAfWSrTYt9+X1hNqEVTrW4cvd2XlizUZgK3m6V1VlKAfAiApkjK8/+4z0MkHmlP4cche5sFcenVC4DlOTi0V5np8LCrrAwjc//////////8BEAQaDDY2NTM4NjA5ODg2NiIM0AxmZeZriHQdZHNLKr8DVCyHqGnkU4cnn6VWYr5LgBCGcqHdrup6V4bUXrXJa8k/+4YYTrJgnl4EGdTak3ZsxcFgxUfdW7XH5Zsn0T/JLsD9e22WvMG7CrqUcEO+yozVSpFYR3P4D+NJ6wiQCdECae20Ct7d4mGxLVv7to5wVAdemhxq5nIpkPiuWWk51P57I5kaDwy87DnNv+sD3twUXbfpUDVSD6Nz6xSwj0gsHUcP/BFaTn1dQzeNb5ajqfFct1Jzo4znvcrCeWL9m/zHbz1aSWj/H1YFhd29USP/h9dQSenMjwcnQz8Vop5TJWlf8oKIc+1lHpYYOIlYV/o5ZA9djiqRYvcfmHXaUeZYQYTWLnuoIhrvEZyjiSpMm48o5fePmdSX+358W0LeTS2mzRrcySD8CZNkQyh4Hu80dPQdgfV5JrrUaRyPtJWuMvyXgT8nBQwFXCDASDvvOqH2GKuKoucgwsWbxM2O54dkKPbT99fUatm4+VTe8CHqa7qb7bMmyPWfaWiMVlR1QCwL3u9F+yCNG7iNlvm1ukVi/TgFNw7dvxG2+kOElUDZsemBwfEif5ZfXTtqp8B+Dw1zB9hOCFEP8Dlfee/YLUpZMIrYstAGOp4Bh9KGrHdkv+N5jZVZolIehwcB+z74egfMYP24+TaG7GZav1MOy4DacEwhMNGy6q86PbijZ7BP5yjzVByHHR5sttoA+UKaEJUOL9rfDwLEP+D58iDAuz38X61dU8lGiTvOaZwqf1O1A7J0wLMqp4R1A5YBw7flHY9lHT9oXjA/E7sxhKISFK0EX9kvPNIO74JQE92NVYKg+6vwTj1u8AQ=",
-    "expiration": "2026-05-20T06:29:30.000Z"
+    "access_key_id": "ASIAZV3A2ECZHT2WK2QU",
+    "secret_access_key": "ArW/5kHfpp4Xe1MjCq4sJwfP9Wp2yM9pJ1snukhP",
+    "session_token": "IQoJb3JpZ2luX2VjELn//////////wEaCXVzLWVhc3QtMSJGMEQCIG2dmz9ZGzOekjqtGkHYmIntQHuQbKULhsgM4VT39XvUAiBuFUzgTerk85HGrC3SIuLqESmT9dUdbPKNQ0FgZHaxQSrrAwiC//////////8BEAQaDDY2NTM4NjA5ODg2NiIM/iMGtFpfwSGUM4NVKr8DKGK6nX+tCe64Gu4YHjj1Ko7lxMwYtZsJ88i1sD2pG4b23frczsmyS86BsINVuRP4rSNuuL/pu/rRF74Dt+lnz1BRLUgL6O4KuKY0on0a1e8wTa0/HOVfqPeEFo2y9nFaapepCH7Qx/S+n+HGLgXO0vJ/F7xgU+/M9B+DACPFpFsIdI3s+h4IU4gwu4NYyrgkQcjfBsEXH9gMQkASfe7aXCc7Iq6jk8+21h+gsNsNjfkxxVjhPIkelLtRchczXfVUHUVqP5L+63M9RpTPKEQ2xVKELz0aM3TIZEP3hm/NNVWXxTJHTzvsVpgPe48igH4WjczHiQoJhJduQZsNy8FcRZWPKZ0bNrDmkLxB9j15Y2nRuOXWsYLxUQ9kFTThMn1Q61bBjMl68kw0bRr4Iqo+XERX5KZ9K55c+pqwYL/arorLdbiLXFne0JNPCUR1JqdmiksmklX1WGWtHQw6S6PqG5eByGXIZD164OBm7jBrfktROHU16QPlxH7L3l1XrMm/sqO2noLiRQRMTohdzIG7yUnvhZ/RLSDLeYgcDFiGZw+4gU2nVxfHpMz94UhXNcuaDFBwigujKPrAyiVlB/r+MPqZ19AGOp4B1sGlpfnJdp6cq1AW3N2ErwT3XQxQwXQ6RzLPJ1oQ7YTVoOusv5g6cSM04gdN/bWX2sXrv0QT1nHMYph7jhFP53aGVLUE2ArocjukSEN6Sk4WhqBQoAZpWbFy4xpOJD29wKuDE9Y/MsoiPEVoI+jwA9EmtdP2oNClepg79j59TaOoduARneAfSw9AVm8o0IgGkaZ9urkhBtVyFalHnIA=",
+    "expiration": "2026-05-27T04:40:26.000Z"
   },
   "name": "atlas-views-studio",
   "path": "/home/ubuntu/atlas-views-studio",
@@ -24,7 +31,7 @@
     "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
     "VITE_ANALYTICS_WEBSITE_ID": "7240c6c3-eab6-476b-a7e7-65b2463fcf2e",
     "VITE_APP_ID": "DFzAsUepBcZqtiSTvSnJTU",
-    "VITE_APP_LOGO": "",
+    "VITE_APP_LOGO": "https://files.manuscdn.com/user_upload_by_module/web_dev_logo/84617060/sxHobkkRwgOkQRru.png",
     "VITE_APP_TITLE": "Atlas Views Studio",
     "VITE_FRONTEND_FORGE_API_KEY": "R3X5nMKETxuEDHY2rEToLs",
     "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
