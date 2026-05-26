@@ -144,7 +144,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
       const w = r.imageUrl ? baseSize * sizeVar : baseSize * 0.6 * sizeVar;
       const h = r.imageUrl ? w * (r.aspectRatio ? parseFloat(r.aspectRatio) : 1.2) : w;
 
-      return { resource: r, x, y, baseX: x, baseY: y, w, h: Math.min(h, w * 1.5) };
+      return { resource: r, x, y, baseX: x, baseY: y, w, h };
     });
   }, [resources, containerSize, isMobile, isNarrow]);
 
@@ -425,7 +425,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                   <img
                     src={r.imageUrl!}
                     alt={r.title}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                     draggable={false}
                   />
@@ -539,9 +539,9 @@ export default function OrbitView({ resources, connections, onSelectResource, is
         </div>
       )}
 
-      {/* Grouping switcher (bottom) */}
+      {/* Grouping switcher (bottom-left) */}
       <div
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 z-30 px-3 py-2 rounded-full"
+        className="absolute bottom-4 left-4 flex items-center gap-1 z-30 px-3 py-2 rounded-full"
         style={{
           background: isDarkMode ? 'rgba(20,20,25,0.6)' : 'rgba(240,240,240,0.8)',
           backdropFilter: 'blur(16px)',
