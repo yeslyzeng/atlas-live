@@ -574,32 +574,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
         ))}
       </div>
 
-      {/* Mode indicator & instructions */}
-      {!isMobile && !isNarrow && (
-        <div className="absolute top-4 right-4 z-30">
-          <div
-            className="px-3 py-2 rounded-lg"
-            style={{
-              background: isDarkMode ? 'rgba(20,20,25,0.7)' : 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(12px)',
-              border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)',
-            }}
-          >
-            <div
-              className={`text-[9px] uppercase tracking-[0.12em] ${isDarkMode ? 'text-white/40' : 'text-black/50'}`}
-              style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}
-            >
-              {mode === 'scatter' ? 'Constellation' : 'Orbit'}
-            </div>
-            <div className={`text-[8px] mt-1 ${isDarkMode ? 'text-white/20' : 'text-black/30'}`} style={{ fontFamily: "'JetBrains Mono', 'SF Mono', monospace" }}>
-              {mode === 'scatter'
-                ? 'Click any image to orbit around it'
-                : 'Click center to return · Click another to re-orbit'
-              }
-            </div>
-          </div>
-        </div>
-      )}
+
 
 
     </div>
