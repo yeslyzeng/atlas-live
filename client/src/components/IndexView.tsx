@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import type { Resource, Connection } from '../types';
-import { TYPE_COLORS } from '../types';
 import { ExternalLink } from 'lucide-react';
 
 interface IndexViewProps {
@@ -12,20 +11,20 @@ interface IndexViewProps {
 type SortKey = 'default' | 'creator' | 'title' | 'year' | 'type';
 
 /**
- * IndexView — project000.xyz-inspired horizontal-scrolling card grid.
- * Vertical columns of cards that scroll horizontally via drag.
- * Each card shows image + info (Creator, Title, Year, Medium, Link).
- * Smooth drag-to-scroll interaction.
+ * IndexView — project000.xyz-style horizontal-scrolling cards view.
+ * Vertical columns of cards that scroll horizontally via wheel/drag.
+ * Each card: [image] [info grid]. Click to expand.
  */
 export default function IndexView({ resources, connections, onSelectResource }: IndexViewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
   const [sortKey, setSortKey] = useState<SortKey>('default');
   const [showImages, setShowImages] = useState(true);
   const [showInfo, setShowInfo] = useState(true);
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  // Drag scroll state
+  // Scroll position via translateX (like project000)
+  const scrollX = useRef(0);
+  const maxScroll = useRef(0);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const scrollStartX = useRef(0);
@@ -48,17 +47,22 @@ export default function IndexView({ resources, connections, onSelectResource }: 
     }
   }, [resources, sortKey]);
 
-  // Column layout
-  const CARD_HEIGHT = 260;
-  const COLUMN_GAP = 2;
-  const CARD_GAP = 2;
-  const TOP_PADDING = 10;
-  const BOTTOM_PADDING = 80;
+  // Layout constants (matching project000)
+  const CARD_HEIGHT = 120;
+  const COLUMN_GAP = 40;
+  const CARD_GAP = 20;
+  const TOP_PADDING = 85;
+  const BOTTOM_PADDING = 20;
+  const IMG_WIDTH = 120;
+  const INFO_WIDTH = 250;
 
   const cardsPerColumn = useMemo(() => {
     const availableHeight = (typeof window !== 'undefined' ? window.innerHeight : 800) - TOP_PADDING - BOTTOM_PADDING;
     return Math.max(1, Math.floor((availableHeight + CARD_GAP) / (CARD_HEIGHT + CARD_GAP)));
   }, []);
+
+  const expandRows = cardsPerColumn >= 3 ? 3 : 2;
+  const expandedImgSize = expandRows * CARD_HEIGHT + (expandRows - 1) * CARD_GAP;
 
   const columnData = useMemo(() => {
     const cols: Resource[][] = [];
@@ -74,12 +78,33 @@ export default function IndexView({ resources, connections, onSelectResource }: 
     return cols;
   }, [sortedResources, cardsPerColumn]);
 
-  // Drag to scroll horizontally
+  // Wheel scroll → translateX (like project000)
+  useEffect(() => {
+    const el = cardsRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      scrollX.current -= e.deltaY;
+      scrollX.current = Math.min(0, scrollX.current);
+      const totalWidth = el.scrollWidth;
+      maxScroll.current = Math.max(0, totalWidth - window.innerWidth);
+      scrollX.current = Math.max(-maxScroll.current, scrollX.current);
+      el.style.transform = `translateX(${scrollX.current}px)`;
+    };
+    // Need to attach to parent for wheel capture
+    const parent = el.parentElement;
+    if (parent) {
+      parent.addEventListener('wheel', handleWheel, { passive: false });
+      return () => parent.removeEventListener('wheel', handleWheel);
+    }
+  }, [columnData]);
+
+  // Drag scroll
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     isDragging.current = true;
     hasDragged.current = false;
     dragStartX.current = e.clientX;
-    scrollStartX.current = cardsRef.current?.scrollLeft || 0;
+    scrollStartX.current = scrollX.current;
     document.body.style.cursor = 'grabbing';
     document.body.style.userSelect = 'none';
   }, []);
@@ -89,9 +114,15 @@ export default function IndexView({ resources, connections, onSelectResource }: 
       if (!isDragging.current) return;
       const dx = e.clientX - dragStartX.current;
       if (Math.abs(dx) > 3) hasDragged.current = true;
-      if (cardsRef.current) {
-        cardsRef.current.scrollLeft = scrollStartX.current - dx;
-      }
+      const el = cardsRef.current;
+      if (!el) return;
+      let newX = scrollStartX.current + dx;
+      newX = Math.min(0, newX);
+      const totalWidth = el.scrollWidth;
+      maxScroll.current = Math.max(0, totalWidth - window.innerWidth);
+      newX = Math.max(-maxScroll.current, newX);
+      scrollX.current = newX;
+      el.style.transform = `translateX(${scrollX.current}px)`;
     };
     const handleMouseUp = () => {
       isDragging.current = false;
@@ -108,90 +139,124 @@ export default function IndexView({ resources, connections, onSelectResource }: 
 
   const handleCardClick = useCallback((r: Resource) => {
     if (hasDragged.current) return;
-    onSelectResource(r);
-  }, [onSelectResource]);
+    if (expandedId === r.id) {
+      setExpandedId(null);
+    } else {
+      setExpandedId(r.id);
+      onSelectResource(r);
+    }
+  }, [expandedId, onSelectResource]);
+
+  // Info rows sorted by current sort key (like project000)
+  const getInfoRows = useCallback((r: Resource) => {
+    const allRows = [
+      { label: 'Creator', value: r.creator || 'Unknown', key: 'creator' },
+      { label: 'Title', value: r.title, key: 'title' },
+      { label: 'Year', value: r.year ? String(r.year) : '—', key: 'year' },
+      { label: 'Medium', value: r.type, key: 'type' },
+    ];
+    const sk = sortKey === 'default' ? 'creator' : sortKey;
+    allRows.sort((a, b) => (b.key === sk ? 1 : 0) - (a.key === sk ? 1 : 0));
+    return allRows;
+  }, [sortKey]);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden" style={{ background: '#0a0a0a' }}>
-      {/* Cards Container — horizontal scroll via drag */}
+    <div className="absolute inset-0 overflow-hidden" style={{ background: '#1a1a1a', userSelect: 'none' }}>
+      {/* Cards container — translateX based scroll */}
       <div
-        ref={cardsRef}
-        className="absolute inset-0 overflow-x-auto overflow-y-hidden cursor-grab select-none"
-        style={{
-          paddingTop: TOP_PADDING,
-          paddingBottom: BOTTOM_PADDING,
-          paddingLeft: 10,
-          paddingRight: 10,
-          scrollBehavior: 'auto',
-        }}
+        className="absolute inset-0 overflow-hidden cursor-grab"
         onMouseDown={handleMouseDown}
       >
-        <div className="flex h-full" style={{ gap: COLUMN_GAP, alignItems: 'flex-start' }}>
+        <div
+          ref={cardsRef}
+          className="flex flex-row items-start"
+          style={{
+            padding: `${TOP_PADDING}px 40px ${BOTTOM_PADDING}px 40px`,
+            height: '100vh',
+            transition: 'none',
+          }}
+        >
           {columnData.map((col, colIdx) => (
             <div
               key={colIdx}
               className="flex flex-col shrink-0"
-              style={{ gap: CARD_GAP }}
+              style={{ marginRight: COLUMN_GAP, gap: CARD_GAP }}
             >
               {col.map((resource) => {
-                const isHovered = hoveredId === resource.id;
+                const isExpanded = expandedId === resource.id;
+                const infoRows = getInfoRows(resource);
 
                 return (
                   <div
                     key={resource.id}
-                    className="relative overflow-hidden transition-opacity duration-200"
+                    className="flex overflow-visible"
                     style={{
-                      height: CARD_HEIGHT,
-                      width: showImages ? 200 : 200,
-                      opacity: isHovered ? 1 : 0.85,
+                      height: isExpanded ? expandedImgSize : CARD_HEIGHT,
+                      gap: 12,
+                      transition: 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                      opacity: 1,
+                      cursor: 'pointer',
+                      alignItems: 'flex-start',
                     }}
-                    onMouseEnter={() => setHoveredId(resource.id)}
-                    onMouseLeave={() => setHoveredId(null)}
                     onClick={() => handleCardClick(resource)}
+                    onMouseEnter={(e) => { if (!isExpanded) (e.currentTarget as HTMLElement).style.opacity = '0.7'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
                   >
                     {/* Image */}
                     {showImages && resource.imageUrl && (
-                      <img
-                        src={resource.imageUrl}
-                        alt={resource.title}
-                        className="w-full object-cover"
-                        style={{
-                          height: showInfo ? 140 : CARD_HEIGHT,
-                          display: 'block',
-                        }}
-                        loading="lazy"
-                        draggable={false}
-                      />
+                      <div className="shrink-0" style={{ width: isExpanded ? 'auto' : IMG_WIDTH, marginRight: 16 }}>
+                        <img
+                          src={resource.imageUrl}
+                          alt={resource.title}
+                          className="object-contain"
+                          style={{
+                            height: isExpanded ? expandedImgSize : CARD_HEIGHT,
+                            maxHeight: isExpanded ? 'none' : CARD_HEIGHT,
+                            maxWidth: isExpanded ? 'none' : IMG_WIDTH,
+                            width: isExpanded ? 'auto' : IMG_WIDTH,
+                            transition: 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                            alignSelf: 'flex-start',
+                          }}
+                          loading="lazy"
+                          draggable={false}
+                        />
+                      </div>
                     )}
 
-                    {/* Info */}
+                    {/* Info Grid */}
                     {showInfo && (
-                      <div
-                        className="px-2 pt-2 pb-1"
-                        style={{ fontSize: 11, lineHeight: '1.5', color: 'rgba(255,255,255,0.7)' }}
-                      >
-                        <div className="truncate" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>
-                          {resource.creator || 'Unknown'}
-                        </div>
-                        <div className="truncate font-medium" style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>
-                          {resource.title}
-                        </div>
-                        <div className="flex items-center gap-3 mt-0.5" style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
-                          <span>{resource.year || '—'}</span>
-                          <span className="capitalize">{resource.type}</span>
+                      <div className="shrink-0 pt-1" style={{ width: INFO_WIDTH, marginRight: 30, alignSelf: 'flex-start' }}>
+                        <div className="grid" style={{ rowGap: 0 }}>
+                          {infoRows.map(row => (
+                            <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'start', fontSize: 14, height: 'auto' }}>
+                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 1 }}>{row.label}</div>
+                              <div style={{ color: '#fff', fontSize: 14 }}>{row.value}</div>
+                            </div>
+                          ))}
+                          {/* Link row */}
                           {resource.url && (
-                            <a
-                              href={resource.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-0.5 hover:text-white/70 transition-colors"
-                              style={{ color: 'rgba(255,255,255,0.35)' }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <ExternalLink size={9} />
-                            </a>
+                            <div className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'start', fontSize: 14, height: 'auto' }}>
+                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 1 }}>Link</div>
+                              <a
+                                href={resource.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 hover:opacity-100 transition-opacity"
+                                style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, opacity: 0.7 }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink size={12} />
+                              </a>
+                            </div>
                           )}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Minimal mode */}
+                    {!showImages && !showInfo && (
+                      <div className="pt-1">
+                        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>{resource.title}</span>
                       </div>
                     )}
                   </div>
@@ -202,55 +267,105 @@ export default function IndexView({ resources, connections, onSelectResource }: 
         </div>
       </div>
 
-      {/* Controls — bottom-left */}
+      {/* Sort controls — top right (like project000) */}
       <div
-        className="fixed bottom-20 left-4 z-30 flex flex-col gap-2"
-        style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}
+        className="fixed z-30 hidden md:flex flex-row gap-3.5"
+        style={{
+          top: 24,
+          right: 30,
+          padding: '10px 14px',
+          fontSize: 13,
+          color: '#fff',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0)',
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)';
+          e.currentTarget.style.background = 'rgba(26,26,26,0.8)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.border = '1px solid rgba(255,255,255,0)';
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
-        {/* Sort */}
-        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-          <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sort</span>
-          {(['default', 'creator', 'title', 'year', 'type'] as SortKey[]).map(key => (
-            <button
-              key={key}
-              onClick={() => setSortKey(key)}
-              className="capitalize transition-opacity"
-              style={{
-                opacity: sortKey === key ? 1 : 0.4,
-                fontSize: 11,
-                color: 'rgba(255,255,255,0.7)',
-              }}
-            >
-              {key}
-            </button>
-          ))}
-        </div>
-        {/* Show */}
-        <div className="flex gap-3">
-          <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Show</span>
+        {(['default', 'creator', 'title', 'year', 'type'] as SortKey[]).map(key => (
           <button
-            onClick={() => setShowImages(!showImages)}
-            className="transition-opacity"
-            style={{ opacity: showImages ? 1 : 0.4, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}
+            key={key}
+            onClick={() => setSortKey(key)}
+            className="capitalize transition-opacity"
+            style={{ opacity: sortKey === key ? 1 : 0.4 }}
           >
-            Image
+            {key === 'type' ? 'Medium' : key}
           </button>
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="transition-opacity"
-            style={{ opacity: showInfo ? 1 : 0.4, fontSize: 11, color: 'rgba(255,255,255,0.7)' }}
-          >
-            Info
-          </button>
-        </div>
+        ))}
       </div>
 
-      {/* Count — bottom-right */}
+      {/* Show controls — top left (like project000) */}
       <div
-        className="fixed bottom-20 right-4 z-30"
-        style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}
+        className="fixed z-30 hidden md:flex flex-row gap-3.5"
+        style={{
+          top: 24,
+          left: 30,
+          padding: '10px 14px',
+          fontSize: 13,
+          color: '#fff',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0)',
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)';
+          e.currentTarget.style.background = 'rgba(26,26,26,0.8)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.border = '1px solid rgba(255,255,255,0)';
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
-        {resources.length} entries
+        <button
+          onClick={() => setShowImages(!showImages)}
+          className="transition-opacity"
+          style={{ opacity: showImages ? 1 : 0.4 }}
+        >
+          Image
+        </button>
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="transition-opacity"
+          style={{ opacity: showInfo ? 1 : 0.4 }}
+        >
+          Info
+        </button>
+      </div>
+
+      {/* Mobile controls */}
+      <div className="md:hidden fixed top-3 left-3 right-3 z-30 flex gap-2 items-center" style={{ fontSize: 11 }}>
+        <select
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as SortKey)}
+          className="bg-black/80 text-white text-xs border border-white/10 rounded px-2 py-1.5 backdrop-blur-sm"
+        >
+          <option value="default">Default</option>
+          <option value="creator">Creator</option>
+          <option value="title">Title</option>
+          <option value="year">Year</option>
+          <option value="type">Medium</option>
+        </select>
+        <button
+          onClick={() => setShowImages(!showImages)}
+          className="transition-opacity px-2 py-1 text-xs text-white/70"
+          style={{ opacity: showImages ? 1 : 0.4 }}
+        >
+          Img
+        </button>
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="transition-opacity px-2 py-1 text-xs text-white/70"
+          style={{ opacity: showInfo ? 1 : 0.4 }}
+        >
+          Info
+        </button>
       </div>
     </div>
   );
