@@ -204,7 +204,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                     style={{
                       height: isExpanded ? expandedImgSize : CARD_HEIGHT,
                       gap: 12,
-                      transition: 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                      transition: 'height 0.5s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s ease-out',
                       opacity: 1,
                       cursor: 'pointer',
                       alignItems: 'flex-start',
@@ -225,7 +225,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                             maxHeight: isExpanded ? 'none' : CARD_HEIGHT,
                             maxWidth: isExpanded ? 'none' : IMG_WIDTH,
                             width: isExpanded ? 'auto' : IMG_WIDTH,
-                            transition: 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                            transition: 'height 0.5s cubic-bezier(0.23, 1, 0.32, 1)',
                             alignSelf: 'flex-start',
                           }}
                           loading="lazy"
@@ -241,7 +241,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                           {infoRows.map(row => (
                             <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 13, lineHeight: '1.4' }}>
                               <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{row.label}</div>
-                              <div style={{ color: '#fff', fontSize: 13 }}>{row.value}</div>
+                              <div style={{ color: '#fff', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>{row.value}</div>
                             </div>
                           ))}
                           {/* Link row */}

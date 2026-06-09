@@ -272,8 +272,8 @@ export default function OrbitView({ resources, connections, onSelectResource, is
       const items = inner.querySelectorAll<HTMLElement>('[data-orbit-item]');
       nodesRef.current.forEach((node, i) => {
         // Lerp position
-        node.x = lerp(node.x, node.tx, 0.06);
-        node.y = lerp(node.y, node.ty, 0.06);
+        node.x = lerp(node.x, node.tx, 0.035);
+        node.y = lerp(node.y, node.ty, 0.035);
 
         const el = items[i];
         if (el) {
@@ -378,16 +378,16 @@ export default function OrbitView({ resources, connections, onSelectResource, is
           const isDimmed = mode === 'orbit' && node.relation === 'none';
           const hasImage = !!r.imageUrl;
 
-          // Size adjustments based on state
+          // Size adjustments based on state — subtle, elegant
           let scale = 1;
-          if (isSelected) scale = isMobile ? 1.8 : 2.2;
-          else if (isHovered) scale = 1.3;
-          else if (isConnected) scale = 1.1;
-          else if (isDimmed) scale = 0.6;
+          if (isSelected) scale = isMobile ? 1.5 : 1.8;
+          else if (isHovered) scale = 1.12;
+          else if (isConnected) scale = 1.05;
+          else if (isDimmed) scale = 0.7;
 
           // Staggered reveal
           const rng = seededRandom(r.id * 13 + i);
-          const revealDelay = 50 + rng() * 600;
+          const revealDelay = 80 + rng() * 1000;
 
           return (
             <div
@@ -399,8 +399,8 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                 height: node.h,
                 zIndex: isSelected ? 200 : isHovered ? 150 : isConnected ? 100 : 10,
                 willChange: 'transform',
-                opacity: revealed ? (isDimmed ? 0.15 : 1) : 0,
-                transition: `opacity 0.6s ease-out ${revealed ? revealDelay + 'ms' : '0ms'}, width 0.4s, height 0.4s`,
+                opacity: revealed ? (isDimmed ? 0.2 : 1) : 0,
+                transition: `opacity 1s ease-out ${revealed ? revealDelay + 'ms' : '0ms'}, width 0.6s ease-out, height 0.6s ease-out`,
               }}
               onMouseEnter={() => setHoveredId(r.id)}
               onMouseLeave={() => setHoveredId(null)}
@@ -410,7 +410,8 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                 className="w-full h-full relative overflow-hidden"
                 style={{
                   transform: `scale(${scale})`,
-                  transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s',
+                  transition: 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s ease-out, filter 0.6s ease-out',
+                  filter: isDimmed ? 'blur(1px)' : 'none',
                   boxShadow: isSelected
                     ? `0 0 30px 4px ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)'}`
                     : isHovered
