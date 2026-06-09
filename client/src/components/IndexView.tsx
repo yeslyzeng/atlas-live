@@ -52,31 +52,42 @@ export default function IndexView({ resources, connections, onSelectResource }: 
   const COLUMN_GAP = 40;
   const CARD_GAP = 20;
   const TOP_PADDING = 85;
-  const BOTTOM_PADDING = 20;
+  const BOTTOM_PADDING = 80;
   const IMG_WIDTH = 120;
   const INFO_WIDTH = 250;
 
   const cardsPerColumn = useMemo(() => {
     const availableHeight = (typeof window !== 'undefined' ? window.innerHeight : 800) - TOP_PADDING - BOTTOM_PADDING;
-    return Math.max(1, Math.floor((availableHeight + CARD_GAP) / (CARD_HEIGHT + CARD_GAP)));
+    return Math.max(1, Math.floor(availableHeight / (CARD_HEIGHT + CARD_GAP)));
   }, []);
 
   const expandRows = cardsPerColumn >= 3 ? 3 : 2;
   const expandedImgSize = expandRows * CARD_HEIGHT + (expandRows - 1) * CARD_GAP;
 
+  // Relayout columns accounting for expanded card taking multiple slots
   const columnData = useMemo(() => {
     const cols: Resource[][] = [];
     let currentCol: Resource[] = [];
+    let slotsUsed = 0;
+
     sortedResources.forEach((r) => {
-      currentCol.push(r);
-      if (currentCol.length >= cardsPerColumn) {
+      const slots = (expandedId === r.id) ? expandRows : 1;
+      if (slotsUsed + slots > cardsPerColumn && currentCol.length > 0) {
         cols.push(currentCol);
         currentCol = [];
+        slotsUsed = 0;
+      }
+      currentCol.push(r);
+      slotsUsed += slots;
+      if (slotsUsed >= cardsPerColumn) {
+        cols.push(currentCol);
+        currentCol = [];
+        slotsUsed = 0;
       }
     });
     if (currentCol.length > 0) cols.push(currentCol);
     return cols;
-  }, [sortedResources, cardsPerColumn]);
+  }, [sortedResources, cardsPerColumn, expandedId, expandRows]);
 
   // Wheel scroll → translateX (like project000)
   useEffect(() => {
@@ -172,7 +183,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
           className="flex flex-row items-start"
           style={{
             padding: `${TOP_PADDING}px 40px ${BOTTOM_PADDING}px 40px`,
-            height: '100vh',
+            height: '100%',
             transition: 'none',
           }}
         >
@@ -180,7 +191,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
             <div
               key={colIdx}
               className="flex flex-col shrink-0"
-              style={{ marginRight: COLUMN_GAP, gap: CARD_GAP }}
+              style={{ marginRight: COLUMN_GAP, gap: CARD_GAP, overflow: 'hidden' }}
             >
               {col.map((resource) => {
                 const isExpanded = expandedId === resource.id;
@@ -189,7 +200,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                 return (
                   <div
                     key={resource.id}
-                    className="flex overflow-visible"
+                    className="flex overflow-hidden"
                     style={{
                       height: isExpanded ? expandedImgSize : CARD_HEIGHT,
                       gap: 12,
@@ -226,23 +237,23 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                     {/* Info Grid */}
                     {showInfo && (
                       <div className="shrink-0 pt-1" style={{ width: INFO_WIDTH, marginRight: 30, alignSelf: 'flex-start' }}>
-                        <div className="grid" style={{ rowGap: 0 }}>
+                        <div className="grid" style={{ rowGap: 4 }}>
                           {infoRows.map(row => (
-                            <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'start', fontSize: 14, height: 'auto' }}>
-                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 1 }}>{row.label}</div>
-                              <div style={{ color: '#fff', fontSize: 14 }}>{row.value}</div>
+                            <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 13, lineHeight: '1.4' }}>
+                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{row.label}</div>
+                              <div style={{ color: '#fff', fontSize: 13 }}>{row.value}</div>
                             </div>
                           ))}
                           {/* Link row */}
                           {resource.url && (
-                            <div className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'start', fontSize: 14, height: 'auto' }}>
-                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 1 }}>Link</div>
+                            <div className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 13, lineHeight: '1.4' }}>
+                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Link</div>
                               <a
                                 href={resource.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 hover:opacity-100 transition-opacity"
-                                style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, opacity: 0.7 }}
+                                style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, opacity: 0.7 }}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <ExternalLink size={12} />
