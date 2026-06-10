@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Resource, Connection } from "../types";
 import { TYPE_COLORS, CONNECTION_COLORS } from "../types";
-import { X, ExternalLink, MapPin } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface InfoPanelProps {
@@ -11,23 +11,6 @@ interface InfoPanelProps {
   onClose: () => void;
   onNavigate: (r: Resource) => void;
 }
-
-// Frosted glass color palette
-const TEXT_PRIMARY = 'rgba(255,255,255,0.92)';
-const TEXT_SECONDARY = 'rgba(255,255,255,0.6)';
-const TEXT_MUTED = 'rgba(255,255,255,0.35)';
-const TEXT_FAINT = 'rgba(255,255,255,0.2)';
-const BORDER_COLOR = 'rgba(255,255,255,0.08)';
-const TAG_BG = 'rgba(255,255,255,0.06)';
-const TAG_TEXT = 'rgba(255,255,255,0.5)';
-
-// Map connection type keys to vibrant colors
-const CONN_EDITORIAL_COLORS: Record<string, string> = {
-  type: 'hsl(270, 55%, 65%)',
-  colour: 'hsl(38, 70%, 60%)',
-  theme: 'hsl(340, 60%, 65%)',
-  creator: 'hsl(160, 55%, 55%)',
-};
 
 export default function InfoPanel({ resource, connections, resources, onClose, onNavigate }: InfoPanelProps) {
   const isMobile = useIsMobile();
@@ -40,6 +23,11 @@ export default function InfoPanel({ resource, connections, resources, onClose, o
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  // Scroll back to top when navigating between resources
+  useEffect(() => {
+    panelRef.current?.scrollTo({ top: 0 });
+  }, [resource?.id]);
 
   if (!resource) return null;
 
@@ -63,29 +51,30 @@ export default function InfoPanel({ resource, connections, resources, onClose, o
     <>
       {/* Video preview */}
       {resource.videoUrl && (
-        <div style={{ margin: '0 -4px 12px' }}>
+        <div className="hud-plate" style={{ marginBottom: 16 }}>
           {resource.videoUrl.includes('youtube.com') || resource.videoUrl.includes('youtu.be') ? (
             <iframe
               src={resource.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-              className="w-full aspect-video rounded"
+              className="w-full aspect-video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              style={{ border: 'none' }}
+              style={{ border: 'none', display: 'block' }}
             />
           ) : resource.videoUrl.includes('vimeo.com') ? (
             <iframe
               src={resource.videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')}
-              className="w-full aspect-video rounded"
+              className="w-full aspect-video"
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
-              style={{ border: 'none' }}
+              style={{ border: 'none', display: 'block' }}
             />
           ) : (
             <video
               src={resource.videoUrl}
               controls
-              className="w-full max-h-48 rounded"
+              className="w-full max-h-52"
               poster={resource.imageUrl || undefined}
+              style={{ display: 'block' }}
             />
           )}
         </div>
@@ -93,195 +82,140 @@ export default function InfoPanel({ resource, connections, resources, onClose, o
 
       {/* Image preview */}
       {resource.imageUrl && !resource.videoUrl && (
-        <div style={{ margin: '0 -4px 12px' }}>
+        <div className="hud-plate" style={{ marginBottom: 16 }}>
           <img
             src={resource.imageUrl}
             alt={resource.title}
-            className={`w-full object-contain rounded ${isMobile ? 'max-h-44' : 'max-h-52'}`}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            className={`w-full object-contain ${isMobile ? 'max-h-48' : 'max-h-56'}`}
+            style={{ display: 'block' }}
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
           />
         </div>
       )}
 
+      {/* Type label */}
+      <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
+        <span className="w-1.5 h-1.5" style={{ backgroundColor: dotColor }} />
+        <span className="hud-label" style={{ fontSize: 9 }}>{resource.type}</span>
+      </div>
+
+      {/* Title — the one serif voice in the panel */}
+      <h3 style={{
+        fontFamily: "'EB Garamond', Georgia, serif",
+        fontSize: isMobile ? 22 : 20,
+        fontWeight: 500,
+        lineHeight: 1.25,
+        color: 'var(--ink-full)',
+        marginBottom: 14,
+      }}>
+        {resource.title}
+      </h3>
+
       {/* Quote text */}
       {isQuote && resource.quoteText && (
         <blockquote style={{
-          marginBottom: 12,
+          marginBottom: 14,
           paddingLeft: 12,
-          borderLeft: `2px solid rgba(255,255,255,0.15)`,
+          borderLeft: '1px solid var(--hairline)',
         }}>
-          <p style={{ color: TEXT_SECONDARY, fontSize: 13, lineHeight: 1.7, fontStyle: 'italic' }}>
+          <p style={{
+            fontFamily: "'EB Garamond', Georgia, serif",
+            color: 'var(--ink-mid)', fontSize: 14, lineHeight: 1.7, fontStyle: 'italic',
+          }}>
             &ldquo;{resource.quoteText}&rdquo;
           </p>
         </blockquote>
       )}
 
-      {/* Type label */}
-      <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: dotColor }}
-        />
-        <span style={{
-          fontSize: 9,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: TEXT_MUTED,
-        }}>
-          {resource.type}
-        </span>
-      </div>
-
-      {/* Title */}
-      <h3 style={{
-        fontSize: isMobile ? 20 : 17,
-        fontWeight: 500,
-        lineHeight: 1.3,
-        color: TEXT_PRIMARY,
-        marginBottom: 8,
-      }}>
-        {resource.title}
-      </h3>
-
-      {/* Metadata rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {resource.creator && (
-          <InfoRow label="Creator" value={resource.creator} />
-        )}
-        {resource.year && (
-          <InfoRow label="Year" value={String(resource.year)} />
-        )}
+      {/* Metadata — hairline index table */}
+      <div style={{ borderTop: '1px solid var(--divider)' }}>
+        {resource.creator && <Row label="Creator" value={resource.creator} />}
+        {resource.year && <Row label="Year" value={String(resource.year)} />}
         {resource.language && (
-          <InfoRow label="Language" value={resource.language === 'zh' ? '中文' : 'English'} />
+          <Row label="Language" value={resource.language === 'zh' ? '中文' : 'English'} />
         )}
-        {resource.location && (
-          <div className="flex items-start gap-2">
-            <span style={{ color: TEXT_MUTED, width: 56, flexShrink: 0, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Location</span>
-            <span className="flex items-center gap-1" style={{ color: TEXT_SECONDARY, fontSize: 12 }}>
-              <MapPin size={10} style={{ color: TEXT_MUTED }} />
-              {resource.location}
-            </span>
-          </div>
+        {resource.location && <Row label="Location" value={resource.location} />}
+        {resource.themes.length > 0 && (
+          <Row label="Themes" value={resource.themes.join('  /  ')} />
+        )}
+        {resource.tags.length > 0 && (
+          <Row label="Tags" value={resource.tags.map(t => `#${t}`).join('  ')} dim />
         )}
       </div>
 
       {/* Description */}
       {resource.description && (
         <p style={{
-          color: TEXT_SECONDARY,
-          fontSize: 12,
+          fontFamily: "'EB Garamond', Georgia, serif",
+          color: 'var(--ink-mid)',
+          fontSize: 13.5,
           lineHeight: 1.7,
-          marginTop: 10,
-          marginBottom: 8,
+          marginTop: 14,
         }}>
           {resource.description}
         </p>
       )}
 
-      {/* Themes */}
-      {resource.themes.length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: TEXT_FAINT, display: 'block', marginBottom: 4 }}>Themes</span>
-          <div className="flex flex-wrap gap-1">
-            {resource.themes.map(t => (
-              <span key={t} style={{
-                padding: '2px 7px',
-                background: TAG_BG,
-                color: TAG_TEXT,
-                fontSize: 10,
-                borderRadius: 2,
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}>
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tags */}
-      {resource.tags.length > 0 && (
-        <div style={{ marginTop: 8 }}>
-          <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: TEXT_FAINT, display: 'block', marginBottom: 4 }}>Tags</span>
-          <div className="flex flex-wrap gap-1">
-            {resource.tags.map(t => (
-              <span key={t} style={{
-                padding: '2px 7px',
-                background: 'rgba(255,255,255,0.04)',
-                color: 'rgba(255,255,255,0.4)',
-                fontSize: 10,
-                borderRadius: 2,
-                border: '1px solid rgba(255,255,255,0.04)',
-              }}>
-                #{t}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* URL */}
-      {resource.url && (
-        <a
-          href={resource.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`flex items-center gap-1 transition-colors ${isMobile ? 'py-2' : ''}`}
-          style={{
-            color: TEXT_MUTED,
-            fontSize: isMobile ? 13 : 11,
-            marginTop: 10,
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = TEXT_PRIMARY; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = TEXT_MUTED; }}
-        >
-          <ExternalLink size={isMobile ? 13 : 10} />
-          <span>Source</span>
-        </a>
-      )}
-
-      {/* Added date */}
-      <div style={{ marginTop: 10, fontSize: 9, color: TEXT_FAINT }}>
-        {resource.addedAt
-          ? `Added ${new Date(resource.addedAt).toLocaleDateString()}`
-          : `Catalogued ${new Date(resource.createdAt).toLocaleDateString()}`
-        }
+      {/* Source + date */}
+      <div className="flex items-baseline justify-between" style={{ marginTop: 16 }}>
+        {resource.url ? (
+          <a
+            href={resource.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hud-item flex items-center gap-1.5"
+            style={{ padding: isMobile ? '4px 0' : 0 }}
+          >
+            <ExternalLink size={10} />
+            <span style={{ borderBottom: '1px solid var(--divider)' }}>Source</span>
+          </a>
+        ) : <span />}
+        <span className="hud-label" style={{ fontSize: 9, color: 'var(--ink-faint)' }}>
+          {resource.addedAt
+            ? `Added ${new Date(resource.addedAt).toLocaleDateString()}`
+            : `Catalogued ${new Date(resource.createdAt).toLocaleDateString()}`
+          }
+        </span>
       </div>
 
       {/* Connections */}
       {Object.keys(grouped).length > 0 && (
-        <div style={{
-          marginTop: 14,
-          paddingTop: 10,
-          borderTop: `1px solid ${BORDER_COLOR}`,
-        }}>
-          <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: TEXT_FAINT }}>Connections</span>
+        <div style={{ marginTop: 22, paddingTop: 12, borderTop: '1px solid var(--hairline)' }}>
+          <span className="hud-label" style={{ fontSize: 9 }}>
+            Connections — {relatedConnections.length}
+          </span>
           {Object.entries(grouped).map(([type, items]) => (
-            <div key={type} style={{ marginTop: 8 }}>
-              <span style={{
-                fontSize: 9,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: CONN_EDITORIAL_COLORS[type] || TEXT_MUTED,
-                fontWeight: 500,
-              }}>
-                {type} ({items.length})
-              </span>
-              <div style={{ marginTop: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div key={type} style={{ marginTop: 12 }}>
+              <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                <span className="w-1.5 h-1.5" style={{ backgroundColor: CONNECTION_COLORS[type] || 'var(--ink-dim)' }} />
+                <span className="hud-label" style={{ fontSize: 9 }}>
+                  {type} ({items.length})
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {items.slice(0, 8).map(({ other }) => (
                   <button
                     key={other.id}
                     onClick={() => onNavigate(other)}
-                    className={`block w-full text-left transition-colors truncate ${isMobile ? 'py-1' : ''}`}
-                    style={{ color: TEXT_SECONDARY, fontSize: isMobile ? 13 : 11 }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = TEXT_PRIMARY; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = TEXT_SECONDARY; }}
+                    className="block w-full text-left truncate"
+                    style={{
+                      fontFamily: 'var(--hud-mono)',
+                      fontSize: 11,
+                      color: 'var(--ink-mid)',
+                      padding: isMobile ? '5px 0' : '3px 0',
+                      borderBottom: '1px solid var(--divider)',
+                      transition: 'color 150ms var(--hud-ease)',
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--ink-full)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--ink-mid)'; }}
                   >
                     {other.title}
                   </button>
                 ))}
                 {items.length > 8 && (
-                  <span style={{ fontSize: 9, color: TEXT_FAINT }}>+{items.length - 8} more</span>
+                  <span className="hud-label" style={{ fontSize: 9, color: 'var(--ink-faint)', paddingTop: 4 }}>
+                    +{items.length - 8} more
+                  </span>
                 )}
               </div>
             </div>
@@ -291,44 +225,31 @@ export default function InfoPanel({ resource, connections, resources, onClose, o
     </>
   );
 
-  // Mobile: bottom sheet with frosted glass
+  // Mobile: flat bottom sheet
   if (isMobile) {
     return (
       <>
-        {/* Backdrop */}
         <div
           className="fixed inset-0 z-40"
           style={{ background: 'rgba(0,0,0,0.5)' }}
           onClick={onClose}
         />
-        {/* Bottom sheet */}
         <div
           ref={panelRef}
-          className="fixed bottom-0 left-0 right-0 z-50 max-h-[75vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
+          className="fixed bottom-0 left-0 right-0 z-50 max-h-[78vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
           style={{
-            background: 'rgba(15, 15, 15, 0.85)',
-            backdropFilter: 'blur(24px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-            borderTop: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '16px 16px 0 0',
-            padding: '12px 20px 24px',
-            fontSize: 13,
-            color: TEXT_PRIMARY,
+            background: 'var(--panel)',
+            borderTop: '1px solid var(--hairline)',
+            padding: '14px 20px 28px',
+            color: 'var(--ink-full)',
             scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(255,255,255,0.1) transparent',
           }}
         >
-          {/* Drag handle */}
-          <div className="flex justify-center mb-3">
-            <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
-          </div>
-          {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 transition-colors p-1"
-            style={{ color: TEXT_MUTED }}
+            className="absolute top-4 right-4 p-1 hud-item"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
           {content}
         </div>
@@ -336,31 +257,23 @@ export default function InfoPanel({ resource, connections, resources, onClose, o
     );
   }
 
-  // Desktop: side panel with frosted glass
+  // Desktop: full-height right column, hairlined, flat
   return (
     <div
       ref={panelRef}
-      className="fixed right-6 top-1/2 -translate-y-1/2 z-50 w-72 max-h-[80vh] overflow-y-auto"
+      className="fixed right-0 top-0 bottom-0 z-50 overflow-y-auto animate-in slide-in-from-right duration-300"
       style={{
-        background: 'rgba(15, 15, 15, 0.75)',
-        backdropFilter: 'blur(24px) saturate(1.4)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 8,
-        padding: '16px 18px',
-        fontSize: 13,
-        color: TEXT_PRIMARY,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        width: 340,
+        background: 'var(--panel)',
+        borderLeft: '1px solid var(--hairline)',
+        padding: '52px 24px 32px',
+        color: 'var(--ink-full)',
         scrollbarWidth: 'thin',
-        scrollbarColor: 'rgba(255,255,255,0.1) transparent',
       }}
     >
       <button
         onClick={onClose}
-        className="absolute top-3 right-3 transition-colors"
-        style={{ color: TEXT_MUTED }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = TEXT_PRIMARY; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = TEXT_MUTED; }}
+        className="absolute top-5 right-5 hud-item"
       >
         <X size={14} />
       </button>
@@ -369,18 +282,20 @@ export default function InfoPanel({ resource, connections, resources, onClose, o
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function Row({ label, value, dim }: { label: string; value: string; dim?: boolean }) {
   return (
-    <div className="flex items-start gap-2">
+    <div className="hud-row">
+      <span className="hud-label" style={{ fontSize: 9, width: 64, flexShrink: 0 }}>
+        {label}
+      </span>
       <span style={{
-        color: TEXT_MUTED,
-        width: 56,
-        flexShrink: 0,
-        fontSize: 10,
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-      }}>{label}</span>
-      <span style={{ color: TEXT_SECONDARY, fontSize: 12 }}>{value}</span>
+        fontFamily: 'var(--hud-mono)',
+        fontSize: 11,
+        lineHeight: 1.5,
+        color: dim ? 'var(--ink-dim)' : 'var(--ink-mid)',
+      }}>
+        {value}
+      </span>
     </div>
   );
 }

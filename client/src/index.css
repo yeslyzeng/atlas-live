@@ -175,3 +175,77 @@
     }
   }
 }
+/* ═══════════════════════════════════════════════════════
+   ATLAS HUD — unified chrome system (project000-inspired)
+   Flat · one hairline · mono labels · opacity-only motion
+   Theme flips via [data-theme] on the app root.
+   ═══════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  --page: #0a0a0a;
+  --panel: #0d0d0c;
+  --plate: #141414;
+  --ink-full: rgba(255, 255, 255, 0.92);
+  --ink-mid: rgba(255, 255, 255, 0.55);
+  --ink-dim: rgba(255, 255, 255, 0.34);
+  --ink-faint: rgba(255, 255, 255, 0.18);
+  --hairline: rgba(255, 255, 255, 0.14);
+  --divider: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="light"] {
+  --page: #faf9f7;
+  --panel: #f4f3f0;
+  --plate: #efeeea;
+  --ink-full: rgba(0, 0, 0, 0.88);
+  --ink-mid: rgba(0, 0, 0, 0.55);
+  --ink-dim: rgba(0, 0, 0, 0.36);
+  --ink-faint: rgba(0, 0, 0, 0.2);
+  --hairline: rgba(0, 0, 0, 0.16);
+  --divider: rgba(0, 0, 0, 0.08);
+}
+
+:root {
+  --hud-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+  --hud-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Small uppercase mono label — the HUD voice */
+.hud-label {
+  font-family: var(--hud-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+}
+
+/* Interactive text item: hover brightens, nothing moves */
+.hud-item {
+  font-family: var(--hud-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  transition: color 150ms var(--hud-ease);
+  cursor: pointer;
+  user-select: none;
+}
+.hud-item:hover { color: var(--ink-mid); }
+.hud-item[data-active="true"] { color: var(--ink-full); }
+
+/* Image plate: tames bright/white images against the page */
+.hud-plate {
+  outline: 1px solid var(--divider);
+  outline-offset: -1px;
+  background: var(--plate);
+}
+
+/* Hairline-row metadata table */
+.hud-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.hud-row:last-child { border-bottom: none; }

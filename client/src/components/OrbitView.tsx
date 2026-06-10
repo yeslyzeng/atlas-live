@@ -312,7 +312,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
     <div
       ref={containerRef}
       className="absolute inset-0 overflow-hidden"
-      style={{ backgroundColor: isDarkMode ? '#0A0A0C' : '#ffffff' }}
+      style={{ backgroundColor: 'var(--page)' }}
     >
       {/* SVG connection lines (only in orbit mode) */}
       {mode === 'orbit' && selectedId !== null && (
@@ -479,24 +479,23 @@ export default function OrbitView({ resources, connections, onSelectResource, is
                   }}
                 >
                   <div
-                    className="px-2 py-1 rounded"
+                    className="px-2 py-1"
                     style={{
-                      background: isDarkMode ? 'rgba(10,10,12,0.9)' : 'rgba(255,255,255,0.92)',
-                      backdropFilter: 'blur(8px)',
-                      border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.1)',
+                      background: 'var(--panel)',
+                      border: '1px solid var(--hairline)',
                     }}
                   >
                     <div className="flex items-center gap-1.5">
                       <span
-                        className="inline-block w-[5px] h-[5px] rounded-full shrink-0"
+                        className="inline-block w-[5px] h-[5px] shrink-0"
                         style={{ backgroundColor: TYPE_COLORS[r.type] || 'rgba(128,128,128,0.5)' }}
                       />
-                      <span className={`text-[10px] max-w-[180px] truncate ${isDarkMode ? 'text-white/80' : 'text-black/80'}`} style={{ fontFamily: "'EB Garamond', serif" }}>
+                      <span className="text-[10px] max-w-[180px] truncate" style={{ fontFamily: "'EB Garamond', serif", color: 'var(--ink-full)' }}>
                         {r.title}
                       </span>
                     </div>
                     {r.creator && (
-                      <div className={`text-[8px] pl-[11px] ${isDarkMode ? 'text-white/35' : 'text-black/45'}`}>{r.creator}</div>
+                      <div className="text-[8px] pl-[11px]" style={{ fontFamily: 'var(--hud-mono)', color: 'var(--ink-dim)' }}>{r.creator}</div>
                     )}
                   </div>
                 </div>
@@ -537,40 +536,25 @@ export default function OrbitView({ resources, connections, onSelectResource, is
       )}
 
       {/* Grouping switcher (bottom-left) */}
-      <div
-        className="absolute bottom-4 left-4 flex items-center gap-1 z-30 px-3 py-2 rounded-full"
-        style={{
-          background: isDarkMode ? 'rgba(20,20,25,0.6)' : 'rgba(240,240,240,0.8)',
-          backdropFilter: 'blur(16px)',
-          border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-        }}
-      >
+      <div className="absolute bottom-5 left-7 flex items-baseline gap-4 z-30">
+        <span className="hud-label" style={{ fontSize: 9, color: 'var(--ink-faint)' }}>
+          Group
+        </span>
         {GROUPINGS.slice(0, 3).map((g, gi) => (
           <button
             key={g.id}
             onClick={() => setActiveGrouping(gi)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+            className="hud-item"
+            data-active={activeGrouping === gi}
             style={{
-              background: activeGrouping === gi ? (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)') : 'transparent',
+              paddingBottom: 2,
+              borderBottom: activeGrouping === gi
+                ? '1px solid var(--ink-full)'
+                : '1px solid transparent',
+              transition: 'color 150ms var(--hud-ease), border-color 150ms var(--hud-ease)',
             }}
           >
-            <span
-              className="w-2 h-2 rounded-full transition-all"
-              style={{
-                backgroundColor: activeGrouping === gi ? (isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)') : 'transparent',
-                border: `1.5px solid ${isDarkMode ? `rgba(255,255,255,${activeGrouping === gi ? 0.8 : 0.25})` : `rgba(0,0,0,${activeGrouping === gi ? 0.7 : 0.25})`}`,
-              }}
-            />
-            <span
-              className="text-[10px] uppercase tracking-[0.1em]"
-              style={{
-                fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
-                color: activeGrouping === gi ? (isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)') : (isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.35)'),
-                fontWeight: activeGrouping === gi ? 500 : 400,
-              }}
-            >
-              {g.label}
-            </span>
+            {g.label}
           </button>
         ))}
       </div>

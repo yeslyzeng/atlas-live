@@ -172,7 +172,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
   }, [sortKey]);
 
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: '#1a1a1a', userSelect: 'none' }}>
+    <div className="absolute inset-0 overflow-hidden" style={{ background: 'var(--page)', userSelect: 'none' }}>
       {/* Cards container — translateX based scroll */}
       <div
         className="absolute inset-0 overflow-hidden cursor-grab"
@@ -239,21 +239,21 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                       <div className="shrink-0 pt-1" style={{ width: INFO_WIDTH, marginRight: 30, alignSelf: 'flex-start' }}>
                         <div className="grid" style={{ rowGap: 4 }}>
                           {infoRows.map(row => (
-                            <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 13, lineHeight: '1.4' }}>
-                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{row.label}</div>
-                              <div style={{ color: '#fff', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>{row.value}</div>
+                            <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 12, lineHeight: '1.4', fontFamily: 'var(--hud-mono)' }}>
+                              <div style={{ color: 'var(--ink-dim)', fontSize: 12 }}>{row.label}</div>
+                              <div style={{ color: 'var(--ink-full)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>{row.value}</div>
                             </div>
                           ))}
                           {/* Link row */}
                           {resource.url && (
-                            <div className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 13, lineHeight: '1.4' }}>
-                              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Link</div>
+                            <div className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 12, lineHeight: '1.4', fontFamily: 'var(--hud-mono)' }}>
+                              <div style={{ color: 'var(--ink-dim)', fontSize: 12 }}>Link</div>
                               <a
                                 href={resource.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 hover:opacity-100 transition-opacity"
-                                style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, opacity: 0.7 }}
+                                style={{ color: 'var(--ink-mid)', fontSize: 12, opacity: 0.8 }}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <ExternalLink size={12} />
@@ -267,7 +267,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
                     {/* Minimal mode */}
                     {!showImages && !showInfo && (
                       <div className="pt-1">
-                        <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>{resource.title}</span>
+                        <span style={{ color: 'var(--ink-mid)', fontSize: 13, fontFamily: 'var(--hud-mono)' }}>{resource.title}</span>
                       </div>
                     )}
                   </div>
@@ -280,32 +280,16 @@ export default function IndexView({ resources, connections, onSelectResource }: 
 
       {/* Sort controls — top right (like project000) */}
       <div
-        className="fixed z-30 hidden md:flex flex-row gap-3.5"
-        style={{
-          top: 24,
-          right: 30,
-          padding: '10px 14px',
-          fontSize: 13,
-          color: '#fff',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,0)',
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)';
-          e.currentTarget.style.background = 'rgba(26,26,26,0.8)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.border = '1px solid rgba(255,255,255,0)';
-          e.currentTarget.style.background = 'transparent';
-        }}
+        className="fixed z-30 hidden md:flex flex-row items-baseline gap-4"
+        style={{ top: 56, right: 30 }}
       >
+        <span className="hud-label" style={{ fontSize: 9, color: 'var(--ink-faint)' }}>Sort</span>
         {(['default', 'creator', 'title', 'year', 'type'] as SortKey[]).map(key => (
           <button
             key={key}
             onClick={() => setSortKey(key)}
-            className="capitalize transition-opacity"
-            style={{ opacity: sortKey === key ? 1 : 0.4 }}
+            className="hud-item"
+            data-active={sortKey === key}
           >
             {key === 'type' ? 'Medium' : key}
           </button>
@@ -314,48 +298,39 @@ export default function IndexView({ resources, connections, onSelectResource }: 
 
       {/* Show controls — top left (like project000) */}
       <div
-        className="fixed z-30 hidden md:flex flex-row gap-3.5"
-        style={{
-          top: 24,
-          left: 30,
-          padding: '10px 14px',
-          fontSize: 13,
-          color: '#fff',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255,255,255,0)',
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)';
-          e.currentTarget.style.background = 'rgba(26,26,26,0.8)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.border = '1px solid rgba(255,255,255,0)';
-          e.currentTarget.style.background = 'transparent';
-        }}
+        className="fixed z-30 hidden md:flex flex-row items-baseline gap-4"
+        style={{ top: 56, left: 30 }}
       >
+        <span className="hud-label" style={{ fontSize: 9, color: 'var(--ink-faint)' }}>Show</span>
         <button
           onClick={() => setShowImages(!showImages)}
-          className="transition-opacity"
-          style={{ opacity: showImages ? 1 : 0.4 }}
+          className="hud-item"
+          data-active={showImages}
         >
           Image
         </button>
         <button
           onClick={() => setShowInfo(!showInfo)}
-          className="transition-opacity"
-          style={{ opacity: showInfo ? 1 : 0.4 }}
+          className="hud-item"
+          data-active={showInfo}
         >
           Info
         </button>
       </div>
 
       {/* Mobile controls */}
-      <div className="md:hidden fixed top-3 left-3 right-3 z-30 flex gap-2 items-center" style={{ fontSize: 11 }}>
+      <div className="md:hidden fixed left-4 right-4 z-30 flex gap-3 items-center" style={{ top: 52 }}>
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}
-          className="bg-black/80 text-white text-xs border border-white/10 rounded px-2 py-1.5 backdrop-blur-sm"
+          className="hud-item"
+          style={{
+            background: 'var(--page)',
+            border: '1px solid var(--hairline)',
+            borderRadius: 0,
+            padding: '4px 8px',
+            color: 'var(--ink-mid)',
+          }}
         >
           <option value="default">Default</option>
           <option value="creator">Creator</option>
@@ -365,15 +340,15 @@ export default function IndexView({ resources, connections, onSelectResource }: 
         </select>
         <button
           onClick={() => setShowImages(!showImages)}
-          className="transition-opacity px-2 py-1 text-xs text-white/70"
-          style={{ opacity: showImages ? 1 : 0.4 }}
+          className="hud-item px-1 py-1"
+          data-active={showImages}
         >
           Img
         </button>
         <button
           onClick={() => setShowInfo(!showInfo)}
-          className="transition-opacity px-2 py-1 text-xs text-white/70"
-          style={{ opacity: showInfo ? 1 : 0.4 }}
+          className="hud-item px-1 py-1"
+          data-active={showInfo}
         >
           Info
         </button>
