@@ -3,8 +3,10 @@ import type { Resource, ViewMode } from "../types";
 import { useResources } from "../data/useResources";
 import OrbitView from "@/components/OrbitView";
 import IndexView from "@/components/IndexView";
+import GridView from "@/components/GridView";
+import ExploreView from "@/components/ExploreView";
 import InfoPanel from "@/components/InfoPanel";
-import { Search, X, Orbit, List, Sun, Moon } from "lucide-react";
+import { Search, X, Orbit, List, Grid3X3, Globe2, Sun, Moon } from "lucide-react";
 import { useIsMobile, useIsNarrow } from "@/hooks/useIsMobile";
 
 export default function Home() {
@@ -14,7 +16,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view');
-    if (v && ['orbit', 'index'].includes(v)) {
+    if (v && ['orbit', 'index', 'grid', 'explore'].includes(v)) {
       return v as ViewMode;
     }
     return 'orbit';
@@ -37,6 +39,8 @@ export default function Home() {
 
   const views: { key: ViewMode; label: string; icon: React.ReactNode }[] = [
     { key: 'orbit', label: 'Orbit', icon: <Orbit size={isMobile ? 18 : 14} /> },
+    { key: 'grid', label: 'Grid', icon: <Grid3X3 size={isMobile ? 18 : 14} /> },
+    { key: 'explore', label: 'Explore', icon: <Globe2 size={isMobile ? 18 : 14} /> },
     { key: 'index', label: 'Index', icon: <List size={isMobile ? 18 : 14} /> },
   ];
 
@@ -53,7 +57,7 @@ export default function Home() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ background: isDarkMode ? '#0a0a0a' : '#ffffff' }}>
+    <div className="fixed inset-0 overflow-hidden" style={{ background: isDarkMode ? '#1a1a1a' : '#ffffff' }}>
       {/* Main view area */}
       <div
         className="absolute inset-0 transition-all duration-300"
@@ -76,6 +80,20 @@ export default function Home() {
             resources={resources}
             connections={connections}
             onSelectResource={handleSelectResource}
+          />
+        )}
+        {viewMode === 'grid' && (
+          <GridView
+            resources={resources}
+            onSelectResource={handleSelectResource}
+            isDarkMode={isDarkMode}
+          />
+        )}
+        {viewMode === 'explore' && (
+          <ExploreView
+            resources={resources}
+            onSelectResource={handleSelectResource}
+            isDarkMode={isDarkMode}
           />
         )}
       </div>

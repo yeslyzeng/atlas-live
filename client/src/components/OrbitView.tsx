@@ -312,7 +312,7 @@ export default function OrbitView({ resources, connections, onSelectResource, is
     <div
       ref={containerRef}
       className="absolute inset-0 overflow-hidden"
-      style={{ backgroundColor: isDarkMode ? '#0A0A0C' : '#ffffff' }}
+      style={{ backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff' }}
     >
       {/* SVG connection lines (only in orbit mode) */}
       {mode === 'orbit' && selectedId !== null && (

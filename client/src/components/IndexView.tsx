@@ -236,7 +236,7 @@ export default function IndexView({ resources, connections, onSelectResource }: 
 
                     {/* Info Grid */}
                     {showInfo && (
-                      <div className="shrink-0 pt-1" style={{ width: INFO_WIDTH, marginRight: 30, alignSelf: 'flex-start' }}>
+                      <div className="shrink-0 pt-1" style={{ width: INFO_WIDTH, marginRight: 30, alignSelf: 'flex-start', height: isExpanded ? 'auto' : CARD_HEIGHT, overflow: 'hidden' }}>
                         <div className="grid" style={{ rowGap: 4 }}>
                           {infoRows.map(row => (
                             <div key={row.key} className="grid" style={{ gridTemplateColumns: '70px auto', alignItems: 'baseline', fontSize: 13, lineHeight: '1.4' }}>
