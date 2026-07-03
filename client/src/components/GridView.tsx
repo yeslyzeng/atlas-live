@@ -1,4 +1,9 @@
-import { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { useRef, useMemo } from 'react';
+import { motion, useMotionValue, animate } from 'motion/react';
+import { useResizeObserver } from 'usehooks-ts';
+import { VirtualGrid } from './grid/VirtualGrid';
+import { useDragScroll } from './grid/useDragScroll';
+import { mod, getShortestConnection } from './grid/math';
 import type { Resource } from '../types';
 
 interface GridViewProps {
@@ -8,214 +13,115 @@ interface GridViewProps {
 }
 
 /**
- * Infinite Grid View — Seth Thompson periodic space style.
- * 2D infinite scrolling grid where images tile infinitely via modulo wrapping.
- * Drag or scroll in any direction to explore.
+ * GridView — Infinite image grid (flat torus).
+ *
+ * Implementation follows Seth Thompson's "Infinite Image Grids are Flat Toruses":
+ * 1. Position tracked as continuous coordinates on a 2D number plane
+ * 2. VirtualGrid virtualizes rendering — only visible cells + overscan are in DOM
+ * 3. Periodic boundary operator maps infinite indices to finite resource array
+ * 4. Drag + wheel input with momentum-based inertia (useDragScroll)
+ * 5. goTo uses shortest connection in periodic space for efficient navigation
+ *
+ * Topologically: scrolling this grid = traveling across a flat torus surface.
+ * The grid wraps seamlessly in both X and Y — there are no edges.
  */
-
-// Euclidean modulo
-const mod = (x: number, n: number) => ((x % n) + n) % n;
-
 export default function GridView({ resources, onSelectResource, isDarkMode = true }: GridViewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const ref = useRef<HTMLDivElement>(null);
+  const { width: viewportWidth = 0, height: viewportHeight = 0 } = useResizeObserver({ ref: ref as any });
 
-  // Pan position (top-left corner in virtual space)
-  const panX = useRef(0);
-  const panY = useRef(0);
-  const isDragging = useRef(false);
-  const dragStartX = useRef(0);
-  const dragStartY = useRef(0);
-  const panStartX = useRef(0);
-  const panStartY = useRef(0);
-  const [, forceRender] = useState(0);
-
-  // Grid cell sizing
-  const CELL_SIZE = 160;
-  const GAP = 4;
-  const CELL_TOTAL = CELL_SIZE + GAP;
+  const positionX = useMotionValue(0);
+  const positionY = useMotionValue(0);
 
   // Only resources with images for the grid
   const imageResources = useMemo(() => resources.filter(r => r.imageUrl), [resources]);
-  const N = imageResources.length;
 
-  // Compute grid dimensions (how many cols/rows to tile)
-  const cols = useMemo(() => N > 0 ? Math.ceil(Math.sqrt(N)) : 1, [N]);
-  const rows = useMemo(() => N > 0 ? Math.ceil(N / cols) : 1, [N, cols]);
+  // Grid dimensions — arrange resources in a roughly square grid
+  const columns = useMemo(() => Math.max(1, Math.ceil(Math.sqrt(imageResources.length * 1.5))), [imageResources]);
+  const rows = useMemo(() => Math.max(1, Math.ceil(imageResources.length / columns)), [imageResources, columns]);
 
-  // Period sizes in pixels
-  const periodX = cols * CELL_TOTAL;
-  const periodY = rows * CELL_TOTAL;
+  // Layout parameters
+  const viewportAspectRatio = viewportWidth && viewportHeight ? viewportWidth / viewportHeight : 4 / 3;
+  const itemAspectRatio = 3 / 4; // portrait orientation
+  const itemsPerViewX = 4;
+  const gapX = 0.012;
+  const gapY = gapX * viewportAspectRatio;
+  const itemWidth = (1 - (itemsPerViewX + 1) * gapX) / itemsPerViewX;
+  const itemHeight = (itemWidth * viewportAspectRatio) / itemAspectRatio;
+  const itemsPerViewY = (1 - gapY) / (itemHeight + gapY);
 
-  // Resize observer
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  // Drag/scroll with inertia
+  const bind = useDragScroll(({ offset }) => {
+    positionX.set((offset[0] / (viewportWidth || 1)) * itemsPerViewX);
+    positionY.set((offset[1] / (viewportHeight || 1)) * itemsPerViewY);
+  });
 
-  // Wheel handler — pan in any direction
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      panX.current += e.deltaX || e.deltaY;
-      panY.current += e.deltaY;
-      forceRender(n => n + 1);
-    };
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
+  // goTo — navigate to a specific resource using shortest path in periodic space
+  const goTo = (indexX: number, indexY: number) => {
+    const currentX = positionX.get();
+    const targetX = currentX + getShortestConnection(currentX, indexX, columns);
+    const currentY = positionY.get();
+    const targetY = currentY + getShortestConnection(currentY, indexY, rows);
+    animate(positionX, targetX, { type: "spring", mass: 0.1, restSpeed: 0.01 });
+    animate(positionY, targetY, { type: "spring", mass: 0.1, restSpeed: 0.01 });
+  };
 
-  // Drag handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    isDragging.current = true;
-    dragStartX.current = e.clientX;
-    dragStartY.current = e.clientY;
-    panStartX.current = panX.current;
-    panStartY.current = panY.current;
-    document.body.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-      panX.current = panStartX.current - (e.clientX - dragStartX.current);
-      panY.current = panStartY.current - (e.clientY - dragStartY.current);
-      forceRender(n => n + 1);
-    };
-    const handleMouseUp = () => {
-      isDragging.current = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
-
-  // Compute visible cells
-  const visibleCells = useMemo(() => {
-    if (!containerSize.width || !containerSize.height || N === 0) return [];
-
-    const vw = containerSize.width;
-    const vh = containerSize.height;
-
-    // How many cells fit in viewport + overscan
-    const overscan = 2;
-    const visibleCols = Math.ceil(vw / CELL_TOTAL) + overscan * 2;
-    const visibleRows = Math.ceil(vh / CELL_TOTAL) + overscan * 2;
-
-    // Starting cell index based on pan
-    const startCol = Math.floor(panX.current / CELL_TOTAL) - overscan;
-    const startRow = Math.floor(panY.current / CELL_TOTAL) - overscan;
-
-    const cells: { resource: Resource; x: number; y: number; key: string }[] = [];
-
-    for (let row = 0; row < visibleRows; row++) {
-      for (let col = 0; col < visibleCols; col++) {
-        const gridCol = startCol + col;
-        const gridRow = startRow + row;
-
-        // Map to resource index using periodic boundary
-        const wrappedCol = mod(gridCol, cols);
-        const wrappedRow = mod(gridRow, rows);
-        const resourceIdx = mod(wrappedRow * cols + wrappedCol, N);
-
-        // Position on screen
-        const screenX = gridCol * CELL_TOTAL - panX.current;
-        const screenY = gridRow * CELL_TOTAL - panY.current;
-
-        cells.push({
-          resource: imageResources[resourceIdx],
-          x: screenX,
-          y: screenY,
-          key: `${gridCol},${gridRow}`,
-        });
-      }
-    }
-
-    return cells;
-  }, [containerSize, panX.current, panY.current, N, imageResources, cols, rows, CELL_TOTAL]);
-
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const handleClick = (resource: Resource, column: number, row: number) => {
+    // Navigate to center the clicked item, then select it
+    goTo(column, row);
+    onSelectResource(resource);
+  };
 
   return (
     <div
-      ref={containerRef}
-      className="absolute inset-0 overflow-hidden cursor-grab"
-      style={{ background: isDarkMode ? '#1a1a1a' : '#f5f5f5' }}
-      onMouseDown={handleMouseDown}
+      ref={ref}
+      className="absolute inset-0 overflow-hidden overscroll-contain"
+      style={{ touchAction: 'none', background: isDarkMode ? '#1a1a1a' : '#f5f5f5' }}
+      {...(typeof bind === 'function' ? (bind as any)() : {})}
     >
-      {visibleCells.map(cell => {
-        const isHovered = hoveredId === cell.resource.id;
-        return (
-          <div
-            key={cell.key}
-            className="absolute"
-            style={{
-              left: cell.x,
-              top: cell.y,
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              transition: 'transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s',
-              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-              zIndex: isHovered ? 10 : 1,
-              opacity: isHovered ? 1 : 0.9,
-            }}
-            onMouseEnter={() => setHoveredId(cell.resource.id)}
-            onMouseLeave={() => setHoveredId(null)}
-            onClick={() => {
-              if (!isDragging.current) onSelectResource(cell.resource);
-            }}
-          >
-            <img
-              src={cell.resource.imageUrl!}
-              alt={cell.resource.title}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              draggable={false}
-            />
-            {/* Hover overlay */}
-            {isHovered && (
-              <div
-                className="absolute inset-x-0 bottom-0 p-2"
-                style={{
-                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                }}
-              >
-                <div className="text-[11px] text-white/90 truncate" style={{ fontFamily: "'SF Mono', monospace" }}>
-                  {cell.resource.title}
-                </div>
-                {cell.resource.creator && (
-                  <div className="text-[9px] text-white/50 truncate">
-                    {cell.resource.creator}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      <VirtualGrid
+        position={[positionX, positionY]}
+        itemsPerView={[itemsPerViewX, itemsPerViewY]}
+        gap={[gapX, gapY]}
+        transformValue={(value) => `${value * 100}%`}
+        center
+      >
+        {({ column, row, x, y, width, height }) => {
+          // Periodic boundary operator: map infinite indices to finite resources
+          const indexX = mod(column, columns);
+          const indexY = mod(row, rows);
+          const resourceIdx = mod(indexY * columns + indexX, imageResources.length);
+          const resource = imageResources[resourceIdx];
 
-      {/* Subtle crosshair at center */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
-        <div style={{
-          width: 20,
-          height: 20,
-          border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-          borderRadius: '50%',
-        }} />
-      </div>
+          if (!resource) return null;
+
+          return (
+            <motion.div
+              className="absolute top-0 left-0 overflow-hidden will-change-transform cursor-pointer"
+              style={{ x, y, width, height }}
+              onClick={() => handleClick(resource, column, row)}
+              whileHover={{ scale: 1.03, zIndex: 10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <img
+                src={resource.imageUrl!}
+                alt={resource.title}
+                className="w-full h-full object-cover"
+                draggable="false"
+                loading="lazy"
+              />
+              {/* Subtle title overlay on hover via CSS */}
+              <div className="absolute inset-0 flex items-end opacity-0 hover:opacity-100 transition-opacity duration-200">
+                <div className="w-full p-2" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.6))' }}>
+                  <div className="text-[10px] text-white/90 truncate">{resource.title}</div>
+                  {resource.creator && (
+                    <div className="text-[8px] text-white/50 truncate">{resource.creator}</div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        }}
+      </VirtualGrid>
     </div>
   );
 }
