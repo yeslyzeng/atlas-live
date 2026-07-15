@@ -21,6 +21,7 @@ export default function ExploreView({ resources, onSelectResource, isDarkMode = 
   const meshesRef = useRef<THREE.Mesh[]>([]);
   const rafRef = useRef<number>(0);
   const [hoveredResource, setHoveredResource] = useState<Resource | null>(null);
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   // Only resources with images
@@ -225,6 +226,7 @@ export default function ExploreView({ resources, onSelectResource, isDarkMode = 
       const intersects = raycaster.intersectObjects(meshesRef.current);
       if (intersects.length > 0) {
         const hit = intersects[0].object as THREE.Mesh;
+        setSelectedResource(hit.userData.resource);
         onSelectResource(hit.userData.resource);
       }
     };
@@ -244,12 +246,37 @@ export default function ExploreView({ resources, onSelectResource, isDarkMode = 
     };
   }, [onSelectResource]);
 
+  // Compute related works for selected resource
+  const relatedWorks = useMemo(() => {
+    if (!selectedResource) return [];
+    const related = new Map<number, number>(); // resourceId -> score
+    resources.forEach(r => {
+      if (r.id === selectedResource.id || !r.imageUrl) return;
+      let score = 0;
+      if (r.type === selectedResource.type) score += 3;
+      if (r.creator && r.creator === selectedResource.creator) score += 5;
+      const sharedThemes = (r.themes || []).filter(t => (selectedResource.themes || []).includes(t));
+      score += sharedThemes.length * 2;
+      if (r.dominantHue && selectedResource.dominantHue) {
+        const hueDiff = Math.min(Math.abs(r.dominantHue - selectedResource.dominantHue), 360 - Math.abs(r.dominantHue - selectedResource.dominantHue));
+        if (hueDiff <= 30) score += 2;
+      }
+      if (score > 0) related.set(r.id, score);
+    });
+    return Array.from(related.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 16)
+      .map(([id]) => resources.find(r => r.id === id)!)
+      .filter(Boolean);
+  }, [selectedResource, resources]);
+
   return (
-    <div className="absolute inset-0">
-      <div ref={mountRef} className="w-full h-full" />
+    <div className="absolute inset-0 flex">
+      {/* 3D Canvas */}
+      <div ref={mountRef} className="flex-1 h-full" />
 
       {/* Hover tooltip */}
-      {hoveredResource && (
+      {hoveredResource && !selectedResource && (
         <div
           className="fixed pointer-events-none z-50"
           style={{
@@ -272,6 +299,135 @@ export default function ExploreView({ resources, onSelectResource, isDarkMode = 
             {hoveredResource.creator && (
               <div className={`text-[9px] ${isDarkMode ? 'text-white/40' : 'text-black/40'}`}>
                 {hoveredResource.creator}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Detail + Related Works side panel (10m.co style) */}
+      {selectedResource && (
+        <div
+          className="h-full overflow-y-auto shrink-0"
+          style={{
+            width: 360,
+            background: isDarkMode ? 'rgba(20,20,22,0.95)' : 'rgba(250,248,244,0.97)',
+            backdropFilter: 'blur(12px)',
+            borderLeft: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+          }}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setSelectedResource(null)}
+            className="absolute top-4 right-4 z-10 p-2 rounded-full transition-opacity hover:opacity-100"
+            style={{ color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)', opacity: 0.6 }}
+          >
+            ✕
+          </button>
+
+          {/* Image */}
+          <div className="w-full aspect-square overflow-hidden">
+            <img
+              src={selectedResource.imageUrl || ''}
+              alt={selectedResource.title}
+              className="w-full h-full object-contain"
+              style={{ background: isDarkMode ? '#111' : '#eee' }}
+            />
+          </div>
+
+          {/* Info */}
+          <div className="p-5">
+            {/* Type badge */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full" style={{ background: 'hsl(48, 75%, 55%)' }} />
+              <span className="text-[10px] uppercase tracking-wider" style={{ color: isDarkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }}>
+                {selectedResource.type}
+              </span>
+            </div>
+
+            {/* Title */}
+            <h2 className="text-lg font-medium mb-3" style={{ color: isDarkMode ? '#fff' : '#000' }}>
+              {selectedResource.title}
+            </h2>
+
+            {/* Metadata grid */}
+            <div className="grid gap-1 mb-4" style={{ fontSize: 13 }}>
+              {selectedResource.creator && (
+                <div className="grid grid-cols-[80px_1fr]">
+                  <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>CREATOR</span>
+                  <span style={{ color: isDarkMode ? '#fff' : '#000' }}>{selectedResource.creator}</span>
+                </div>
+              )}
+              {selectedResource.year && (
+                <div className="grid grid-cols-[80px_1fr]">
+                  <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>YEAR</span>
+                  <span style={{ color: isDarkMode ? '#fff' : '#000' }}>{selectedResource.year}</span>
+                </div>
+              )}
+              {selectedResource.language && (
+                <div className="grid grid-cols-[80px_1fr]">
+                  <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>LANGUAGE</span>
+                  <span style={{ color: isDarkMode ? '#fff' : '#000' }}>{selectedResource.language}</span>
+                </div>
+              )}
+              {selectedResource.location && (
+                <div className="grid grid-cols-[80px_1fr]">
+                  <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>LOCATION</span>
+                  <span style={{ color: isDarkMode ? '#fff' : '#000' }}>{selectedResource.location}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {selectedResource.description && (
+              <p className="mb-4" style={{ fontSize: 13, lineHeight: 1.7, color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' }}>
+                {selectedResource.description}
+              </p>
+            )}
+
+            {/* Themes */}
+            {selectedResource.themes && selectedResource.themes.length > 0 && (
+              <div className="mb-4">
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }}>Themes</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedResource.themes.map(t => (
+                    <span key={t} className="px-2 py-0.5 rounded text-[11px]" style={{ background: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)' }}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {selectedResource.tags && selectedResource.tags.length > 0 && (
+              <div className="mb-4">
+                <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)' }}>Tags</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedResource.tags.map(t => (
+                    <span key={t} className="px-2 py-0.5 rounded text-[11px]" style={{ background: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Related Works */}
+            {relatedWorks.length > 0 && (
+              <div className="mt-6">
+                <div className="text-[11px] uppercase tracking-wider mb-3 font-medium" style={{ color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>Related Works</div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {relatedWorks.map(r => (
+                    <button
+                      key={r.id}
+                      onClick={() => { setSelectedResource(r); onSelectResource(r); }}
+                      className="aspect-square overflow-hidden rounded-sm transition-opacity hover:opacity-80"
+                    >
+                      <img src={r.imageUrl!} alt={r.title} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

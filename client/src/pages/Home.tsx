@@ -57,46 +57,51 @@ export default function Home() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden" style={{ background: isDarkMode ? '#1a1a1a' : '#ffffff' }}>
+    <div className="fixed inset-0" style={{ background: isDarkMode ? '#1a1a1a' : '#ffffff', overflow: 'hidden' }}>
       {/* Main view area */}
-      <div
-        className="absolute inset-0 transition-all duration-300"
-        style={{
-          filter: (isMobile && selectedResource) ? 'blur(12px) brightness(0.4)' : 'none',
-          transform: (isMobile && selectedResource) ? 'scale(1.02)' : 'none',
-          pointerEvents: (isMobile && selectedResource) ? 'none' : 'auto',
-        }}
-      >
-        {viewMode === 'orbit' && (
-          <OrbitView
-            resources={resources}
-            connections={connections}
-            onSelectResource={handleSelectResource}
-            isDarkMode={isDarkMode}
-          />
-        )}
-        {viewMode === 'index' && (
-          <IndexView
-            resources={resources}
-            connections={connections}
-            onSelectResource={handleSelectResource}
-          />
-        )}
-        {viewMode === 'grid' && (
+      {viewMode !== 'grid' && (
+        <div
+          className="absolute inset-0 transition-all duration-300"
+          style={{
+            filter: (isMobile && selectedResource) ? 'blur(12px) brightness(0.4)' : 'none',
+            transform: (isMobile && selectedResource) ? 'scale(1.02)' : 'none',
+            pointerEvents: (isMobile && selectedResource) ? 'none' : 'auto',
+            overflow: 'hidden',
+          }}
+        >
+          {viewMode === 'orbit' && (
+            <OrbitView
+              resources={resources}
+              connections={connections}
+              onSelectResource={handleSelectResource}
+              isDarkMode={isDarkMode}
+            />
+          )}
+          {viewMode === 'index' && (
+            <IndexView
+              resources={resources}
+              connections={connections}
+              onSelectResource={handleSelectResource}
+            />
+          )}
+          {viewMode === 'explore' && (
+            <ExploreView
+              resources={resources}
+              onSelectResource={handleSelectResource}
+              isDarkMode={isDarkMode}
+            />
+          )}
+        </div>
+      )}
+      {viewMode === 'grid' && (
+        <div className="absolute inset-0 overflow-y-auto">
           <GridView
             resources={resources}
             onSelectResource={handleSelectResource}
             isDarkMode={isDarkMode}
           />
-        )}
-        {viewMode === 'explore' && (
-          <ExploreView
-            resources={resources}
-            onSelectResource={handleSelectResource}
-            isDarkMode={isDarkMode}
-          />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ─── MOBILE BOTTOM TAB BAR ─── */}
       {isMobile && (

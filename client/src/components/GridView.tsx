@@ -13,7 +13,6 @@ interface GridViewProps {
   isDarkMode?: boolean;
 }
 
-type DemoStep = 'carousel' | 'infinite-row' | 'grid' | 'torus';
 
 /**
  * GridView — Full interactive demonstration of Seth Thompson's
@@ -26,7 +25,6 @@ type DemoStep = 'carousel' | 'infinite-row' | 'grid' | 'torus';
  * 4. Torus visualization (3D torus with UV-mapped grid texture)
  */
 export default function GridView({ resources, onSelectResource, isDarkMode = true }: GridViewProps) {
-  const [step, setStep] = useState<DemoStep>('grid');
   const imageResources = useMemo(() => resources.filter(r => r.imageUrl), [resources]);
 
   const textColor = isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
@@ -34,42 +32,69 @@ export default function GridView({ resources, onSelectResource, isDarkMode = tru
   const bgColor = isDarkMode ? '#1a1a1a' : '#f5f5f5';
 
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: bgColor }}>
-      {/* Step navigation */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 px-3 py-2 rounded-full"
-        style={{
-          background: isDarkMode ? 'rgba(20,20,25,0.7)' : 'rgba(240,240,240,0.85)',
-          backdropFilter: 'blur(12px)',
-          border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-        }}
-      >
-        {([
-          { key: 'carousel', label: '1. Carousel' },
-          { key: 'infinite-row', label: '2. Infinite Row' },
-          { key: 'grid', label: '3. Infinite Grid' },
-          { key: 'torus', label: '4. Torus' },
-        ] as { key: DemoStep; label: string }[]).map(s => (
-          <button
-            key={s.key}
-            onClick={() => setStep(s.key)}
-            className="px-3 py-1.5 rounded-full text-[11px] transition-all"
-            style={{
-              fontFamily: "'SF Mono', 'JetBrains Mono', monospace",
-              background: step === s.key ? (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)') : 'transparent',
-              color: step === s.key ? textColor : mutedColor,
-              fontWeight: step === s.key ? 500 : 400,
-            }}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+    <div style={{ background: bgColor }}>
+      <div className="max-w-4xl mx-auto px-6 py-20">
+        {/* Title */}
+        <h1 className="text-2xl font-light mb-2" style={{ color: textColor, fontFamily: "'EB Garamond', serif" }}>
+          Infinite Image Grids are Flat Toruses
+        </h1>
+        <p className="mb-16" style={{ color: mutedColor, fontSize: 13, fontFamily: "'SF Mono', monospace" }}>
+          An interactive exploration of periodic space, from carousel to torus.
+        </p>
 
-      {/* Demo content */}
-      {step === 'carousel' && <CarouselDemo resources={imageResources} isDarkMode={isDarkMode} />}
-      {step === 'infinite-row' && <InfiniteRowDemo resources={imageResources} isDarkMode={isDarkMode} />}
-      {step === 'grid' && <InfiniteGridDemo resources={imageResources} onSelectResource={onSelectResource} isDarkMode={isDarkMode} />}
-      {step === 'torus' && <TorusDemo resources={imageResources} isDarkMode={isDarkMode} />}
+        {/* Section 1: Carousel */}
+        <section className="mb-24">
+          <h2 className="text-lg font-light mb-4" style={{ color: textColor, fontFamily: "'EB Garamond', serif" }}>1. The Simple Carousel</h2>
+          <p className="mb-6" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            The simplest approach: track an index <code className="px-1 py-0.5 rounded" style={{ background: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>i</code> and apply a modulo after every change to keep it in bounds. The Euclidean modulo ensures we always get a positive result.
+          </p>
+          <div className="rounded-lg overflow-hidden mb-6" style={{ height: 450, border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)' }}>
+            <CarouselDemo resources={imageResources} isDarkMode={isDarkMode} />
+          </div>
+        </section>
+
+        {/* Section 2: Infinite Row */}
+        <section className="mb-24">
+          <h2 className="text-lg font-light mb-4" style={{ color: textColor, fontFamily: "'EB Garamond', serif" }}>2. The Infinite Row (Periodic 1D Space)</h2>
+          <p className="mb-4" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            A carousel is really about <em>movement through space</em>. Instead of tracking a discrete index, we track a continuous position on a number line. The periodic boundary operator maps any real number into our finite set of images.
+          </p>
+          <p className="mb-6" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            <code className="px-1 py-0.5 rounded" style={{ background: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>boundaryOp(x, a, b) = a + mod(x - a, b - a)</code>
+          </p>
+          <div className="rounded-lg overflow-hidden mb-6" style={{ height: 400, border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)' }}>
+            <InfiniteRowDemo resources={imageResources} isDarkMode={isDarkMode} />
+          </div>
+        </section>
+
+        {/* Section 3: Infinite Grid */}
+        <section className="mb-24">
+          <h2 className="text-lg font-light mb-4" style={{ color: textColor, fontFamily: "'EB Garamond', serif" }}>3. The Infinite Grid (2D Periodic Space)</h2>
+          <p className="mb-4" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            Extending to 2D: apply the periodic boundary operator element-wise in both dimensions. The <em>shortest connection</em> formula finds the minimal path between any two images, even across periodic boundaries.
+          </p>
+          <p className="mb-6" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            <code className="px-1 py-0.5 rounded" style={{ background: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}>shortestConnection(x, y, w) = boundaryOp(y - x, -w/2, w/2)</code>
+          </p>
+          <div className="rounded-lg overflow-hidden mb-6" style={{ height: 500, position: 'relative', border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)' }}>
+            <InfiniteGridDemo resources={imageResources} onSelectResource={onSelectResource} isDarkMode={isDarkMode} />
+          </div>
+        </section>
+
+        {/* Section 4: Torus */}
+        <section className="mb-24">
+          <h2 className="text-lg font-light mb-4" style={{ color: textColor, fontFamily: "'EB Garamond', serif" }}>4. The Flat Torus</h2>
+          <p className="mb-4" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            A rectangle with periodic boundary conditions in one dimension is topologically a cylinder. With periodic boundaries in <em>both</em> dimensions, it becomes a torus. Scrolling our infinite grid is equivalent to traveling across the surface of a torus.
+          </p>
+          <p className="mb-6" style={{ color: mutedColor, fontSize: 13, lineHeight: 1.8 }}>
+            The images below are UV-mapped onto a torus geometry — the same grid texture, wrapped around a donut shape.
+          </p>
+          <div className="rounded-lg overflow-hidden mb-6" style={{ height: 500, position: 'relative', border: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)' }}>
+            <TorusDemo resources={imageResources} isDarkMode={isDarkMode} />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
@@ -91,7 +116,7 @@ function CarouselDemo({ resources, isDarkMode }: { resources: Resource[]; isDark
   const mutedColor = isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-8">
+    <div className="relative w-full h-full flex flex-col items-center justify-center gap-6 px-8">
       {/* Explanation */}
       <div className="text-center max-w-md" style={{ color: mutedColor, fontSize: 12, fontFamily: "'SF Mono', monospace", lineHeight: 1.6 }}>
         <p><strong style={{ color: textColor }}>Step 1: Simple Carousel</strong></p>
@@ -226,7 +251,7 @@ function InfiniteRowDemo({ resources, isDarkMode }: { resources: Resource[]; isD
   const mutedColor = isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
 
   return (
-    <div className="absolute inset-0 flex flex-col">
+    <div className="relative w-full h-full flex flex-col">
       {/* Explanation */}
       <div className="text-center px-8 pt-16 pb-4" style={{ color: mutedColor, fontSize: 12, fontFamily: "'SF Mono', monospace", lineHeight: 1.6 }}>
         <p><strong style={{ color: textColor }}>Step 2: Infinite Row (Periodic 1D Space)</strong></p>
@@ -339,7 +364,7 @@ function InfiniteGridDemo({ resources, onSelectResource, isDarkMode }: { resourc
   const mutedColor = isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
 
   return (
-    <div className="absolute inset-0">
+    <div className="relative w-full h-full">
       <div
         ref={ref}
         className="absolute inset-0 overflow-hidden overscroll-contain cursor-grab"
@@ -384,7 +409,7 @@ function InfiniteGridDemo({ resources, onSelectResource, isDarkMode }: { resourc
       {/* goTo random button */}
       <button
         onClick={goToRandom}
-        className="fixed bottom-24 right-6 z-50 px-4 py-2 rounded-full text-[11px] transition-all hover:scale-105"
+        className="absolute bottom-4 right-4 z-50 px-4 py-2 rounded-full text-[11px] transition-all hover:scale-105"
         style={{
           background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
           color: textColor,
@@ -397,7 +422,7 @@ function InfiniteGridDemo({ resources, onSelectResource, isDarkMode }: { resourc
       </button>
 
       {/* Info overlay */}
-      <div className="fixed top-14 right-6 z-40 text-right" style={{ color: mutedColor, fontSize: 10, fontFamily: "'SF Mono', monospace", lineHeight: 1.5 }}>
+      <div className="absolute top-4 right-4 z-40 text-right" style={{ color: mutedColor, fontSize: 10, fontFamily: "'SF Mono', monospace", lineHeight: 1.5 }}>
         <p><strong style={{ color: textColor }}>Step 3: Infinite Grid</strong></p>
         <p>2D periodic space (flat torus)</p>
         <p>Drag or scroll in any direction</p>
@@ -553,11 +578,11 @@ function TorusDemo({ resources, isDarkMode }: { resources: Resource[]; isDarkMod
   }, [resources, isDarkMode, mode]);
 
   return (
-    <div className="absolute inset-0">
+    <div className="relative w-full h-full">
       <div ref={mountRef} className="w-full h-full" />
 
       {/* Mode toggle */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex gap-2">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 flex gap-2">
         <button
           onClick={() => setMode('torus')}
           className="px-4 py-2 rounded-full text-[11px] transition-all"
@@ -587,7 +612,7 @@ function TorusDemo({ resources, isDarkMode }: { resources: Resource[]; isDarkMod
       </div>
 
       {/* Info */}
-      <div className="fixed top-14 right-6 z-40 text-right max-w-xs" style={{ color: mutedColor, fontSize: 10, fontFamily: "'SF Mono', monospace", lineHeight: 1.6 }}>
+      <div className="absolute top-4 right-4 z-40 text-right max-w-xs" style={{ color: mutedColor, fontSize: 10, fontFamily: "'SF Mono', monospace", lineHeight: 1.6 }}>
         <p><strong style={{ color: textColor }}>Step 4: The Torus</strong></p>
         <p className="mt-1">A 2D periodic space is topologically equivalent to a torus.</p>
         <p>Scrolling the infinite grid = traveling across the torus surface.</p>
